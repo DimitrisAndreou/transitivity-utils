@@ -73,18 +73,12 @@ public final class TransitiveRelation<E> {
     }
 
     private void propagate(Node<E> subject, Node<E> object) {
-        LinkedList<Iterator<Node<E>>> toVisit = Lists.newLinkedList();
-        toVisit.add(Iterators.singletonIterator(object));
-        while (!toVisit.isEmpty()) {
-            Iterator<Node<E>> it = toVisit.getFirst();
-            if (!it.hasNext()) {
-                toVisit.removeFirst();
-                continue;
-            }
-            Node<E> next = it.next();
+        Iterator<Node<E>> toVisit = Iterators.singletonIterator(object);
+        while (toVisit.hasNext()) {
+            Node<E> next = toVisit.next();
             if (!next.contains(subject)) {
                 next.intervalSet.addIntervals(subject.intervalSet);
-                toVisit.add(edges.get(next).iterator());
+                toVisit = Iterators.concat(edges.get(next).iterator(), toVisit);
             }
         }
     }
