@@ -5,9 +5,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * Implementation of algorithm of of
- * <a href="http://portal.acm.org/citation.cfm?id=740822">Two Simplified Algorithms for Maintaining Order in a List (Bender et al., 2002)</a>
+ * Efficient implementation of {@link OrderList}.
+ * 
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
+ * @see <a href="http://portal.acm.org/citation.cfm?id=740822">Two Simplified Algorithms for Maintaining Order in a List (Bender et al., 2002)</a>
  */
 public class BenderList<E> implements OrderList<E> {
     private final Node<E> base = createNode(null, Long.MIN_VALUE);
@@ -15,13 +16,13 @@ public class BenderList<E> implements OrderList<E> {
 
     long relabels = 0;
     
-    protected BenderList() { }
+    BenderList() { }
 
     public static <E> BenderList<E> create() {
         return new BenderList<E>();
     }
 
-    protected Node<E> createNode(E value, long tag) {
+    Node<E> createNode(E value, long tag) {
         return new Node<E>(value, tag);
     }
 
@@ -194,7 +195,7 @@ public class BenderList<E> implements OrderList<E> {
         }
     }
 
-    protected static class Node<E> implements OrderList.Node<E> {
+    static class Node<E> implements OrderList.Node<E> {
         long tag;
         private Node<E> prev;
         private Node<E> next;
