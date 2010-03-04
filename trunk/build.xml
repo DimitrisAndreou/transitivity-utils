@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="transitivity-utils" default="default" basedir=".">
+    <description>Builds, tests, and runs the project transitivity-utils.</description>
+    <import file="nbproject/build-impl.xml"/>
+
+    <property file="build.properties"/>
+
+    <!-- Distribution -->
+    <target name="dist" depends="clean,jar,javadoc">
+        <echo message="version = ${version}"/>
+        <tstamp/>
+        <property name="zip.file" value="${dist.dir}/transitivity-utils-${version}.zip"/>
+        <zip destfile="${zip.file}">
+            <zipfileset dir="${src.dir}" prefix="${src.dir}"/>
+            <zipfileset dir="${test.src.dir}" prefix="${test.src.dir}"/>
+            <zipfileset file="${dist.jar}" prefix="${dist.dir}"/>
+            <zipfileset dir="${dist.javadoc.dir}" prefix="${dist.javadoc.dir}"/>
+            <zipfileset dir="lib" prefix="lib"/>
+            <zipfileset dir="testlib" prefix="testlib"/>
+            <zipfileset file="build.xml" prefix=""/>
+            <zipfileset file="build.properties" prefix=""/>
+            <zipfileset dir="nbproject" prefix="nbproject"/>
+            <zipfileset file="LICENCE" prefix=""/>
+        </zip>
+    </target>
+</project>
