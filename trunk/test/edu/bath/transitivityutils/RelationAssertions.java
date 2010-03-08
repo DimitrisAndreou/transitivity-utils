@@ -2,7 +2,6 @@ package edu.bath.transitivityutils;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -59,12 +58,13 @@ class RelationAssertions {
         }
     }
 
+    @SuppressWarnings("unchecked")
     static void assertBiRelations(TransitiveBiRelation r, Object... pairs) {
         assertRelations(r, pairs);
         assertRelations(r.inverse(), inversePairs(pairs));
 
-        Collection inverseDomain = Sets.newHashSet(r.inverse().direct().domain());
-        Collection expectedInverseDomain = new HashSet();
+        Set inverseDomain = r.inverse().direct().domain();
+        Set expectedInverseDomain = new HashSet();
         for (Object subject : r.direct().domain()) {
             expectedInverseDomain.addAll(r.direct().related(subject));
         }

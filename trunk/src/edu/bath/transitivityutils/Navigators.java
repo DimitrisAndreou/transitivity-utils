@@ -2,8 +2,8 @@ package edu.bath.transitivityutils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import java.util.Collection;
+import com.google.common.collect.SetMultimap;
+import java.util.Set;
 
 /**
  *
@@ -12,12 +12,12 @@ import java.util.Collection;
 public final class Navigators {
     private Navigators() { }
 
-    public static <E> Navigator<E> forMultimap(Multimap<E, E> multimap) {
+    public static <E> Navigator<E> forMultimap(SetMultimap<E, E> multimap) {
         return new MultimapNavigator<E>(Preconditions.checkNotNull(multimap));
     }
 
     public static <E> Navigator<E> invert(Navigator<E> navigator) {
-        Multimap<E, E> relationships = HashMultimap.create();
+        SetMultimap<E, E> relationships = HashMultimap.create();
         for (E subject : navigator.domain()) {
             for (E object : navigator.related(subject)) {
                 relationships.put(object, subject);
@@ -27,17 +27,17 @@ public final class Navigators {
     }
 
     private static class MultimapNavigator<E> implements Navigator<E> {
-        private final Multimap<E, E> multimap;
+        private final SetMultimap<E, E> multimap;
 
-        MultimapNavigator(Multimap<E, E> multimap) {
+        MultimapNavigator(SetMultimap<E, E> multimap) {
             this.multimap = multimap;
         }
 
-        public Collection<E> related(E subjectValue) {
+        public Set<E> related(E subjectValue) {
             return multimap.get(subjectValue);
         }
 
-        public Collection<E> domain() {
+        public Set<E> domain() {
             return multimap.keySet();
         }
     }

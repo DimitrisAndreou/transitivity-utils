@@ -5,14 +5,14 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A (transitive, reflexive) binary relation.
@@ -22,7 +22,7 @@ import java.util.Map;
 class DefaultTransitiveRelation<E> implements TransitiveRelation<E> {
     private final BenderList<E> magicList = BenderList.create();
     private final Map<E, Node<E>> nodeMap = Maps.newHashMap();
-    private final Multimap<Node<E>, Node<E>> directRelationships = HashMultimap.create();
+    private final SetMultimap<Node<E>, Node<E>> directRelationships = HashMultimap.create();
     private final Navigator<E> navigator = new DirectNavigator();
 
     DefaultTransitiveRelation() { }
@@ -131,15 +131,30 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E> {
             }
         };
         
-        public Collection<E> related(E subjectValue) {
+        public Set<E> related(E subjectValue) {
             Node<E> subject = nodeMap.get(subjectValue);
             if (subject == null) return Collections.emptySet();
 
-            return Collections.unmodifiableCollection(Collections2.transform(directRelationships.get(subject), nodeToValue));
+            final Set<Node<E>> set = directRelationships.get(subject);
+            return transformSet(set, nodeToValue);
         }
 
-        public Collection<E> domain() {
-            return Collections2.transform(directRelationships.keySet(), nodeToValue);
+        public Set<E> domain() {
+            return transformSet(directRelationships.keySet(), nodeToValue);
+        }
+
+        <A, B> Set<B> transformSet(final Set<A> set, final Function<A, ? extends B> transformer) {
+            return new AbstractSet<B>() {
+                @Override
+                public Iterator<B> iterator() {
+                    return Iterators.transform(set.iterator(), transformer);
+                }
+
+                @Override
+                public int size() {
+                    return set.size();
+                }
+            };
         }
     }
 }
