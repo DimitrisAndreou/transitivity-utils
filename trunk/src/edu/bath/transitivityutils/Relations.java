@@ -47,4 +47,12 @@ public final class Relations {
         }
         return closure;
     }
+
+    public static <E> TransitiveRelation<E> newTransitiveRelation() {
+        return new DefaultTransitiveRelation<E>();
+    }
+
+    public static <E> TransitiveBiRelation<E> newTransitiveBiRelation() {
+        return new DefaultTransitiveBiRelation<E>();
+    }
 }

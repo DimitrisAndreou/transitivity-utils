@@ -1,11 +1,6 @@
 package edu.bath.transitivityutils;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -25,7 +20,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testReflexivityForUnknownNodes() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         assertRelations(
                 1, 1, 
                 2, 2);
@@ -37,7 +32,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testAcyclic1() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(2, 3);
         r.relate(2, 4);
         r.relate(0, 1);
@@ -57,7 +52,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testAcyclic2() { //same, just other order of insertion
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(2, 3);
         r.relate(2, 4);
         r.relate(1, 2);
@@ -77,7 +72,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testCyclic() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(2, 3);
         r.relate(2, 4);
         r.relate(1, 2);
@@ -101,7 +96,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testAcyclic3() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(1, 2);
         r.relate(0, 1);
         r.relate(4, 5);
@@ -124,7 +119,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testCyclesDoNotRemoveVitalEdgesAsRedundant() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(22, 33);
         r.relate(11, 22);
         r.relate(22, 11);
@@ -140,7 +135,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testSimple() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(0, 1);
         r.relate(1, 0);
         r.relate(0, 2);
@@ -154,7 +149,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testSimple2() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(0, 1);
         r.relate(1, 0);
         r.relate(0, 2);
@@ -182,7 +177,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testBottomUp() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(1, 2);
         r.relate(2, 3);
         r.relate(3, 4);
@@ -195,7 +190,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testDirectlyRelated() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
 
         r.relate(1, 2);
         r.relate(2, 3);
@@ -211,7 +206,7 @@ public class TransitiveRelationTest {
 
     @Test
     public void testDirectlyRelatedWith() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
 
         r.relate(1, 2);
         r.relate(2, 3);
@@ -227,63 +222,29 @@ public class TransitiveRelationTest {
 
     @Test(expected=UnsupportedOperationException.class)
     public void testDirectlyRelatedWith_Unmodifiable1() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.direct().related(0).add(null);
     }
 
     @Test(expected=UnsupportedOperationException.class)
     public void testDirectlyRelatedWith_Unmodifiable2() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(0, 1);
         r.direct().related(0).add(null);
     }
 
     @Test
     public void testReflexiveEdgesIgnored() {
-        r = TransitiveRelation.create();
+        r = Relations.newTransitiveRelation();
         r.relate(0, 0);
         assertTrue(r.direct().related(0).isEmpty());
     }
 
-    private void assertRelations(Object... pairs) {
-        Set<Entry<Object, Object>> relations = Sets.newHashSet();
-        Set<Object> domain = Sets.newHashSet();
-        for (int i = 0; i < pairs.length; i += 2) {
-            relations.add(Maps.immutableEntry(pairs[i], pairs[i + 1]));
-            domain.add(pairs[i]);
-            domain.add(pairs[i + 1]);
-        }
-
-        for (Object o1 : domain) {
-            for (Object o2 : domain) {
-                if (o1 == o2) {
-                    assertTrue(r.areRelated(o1, o2));
-                } else {
-                    Entry<Object, Object> entry = Maps.immutableEntry(o1, o2);
-                    assertEquals(entry.toString(), relations.contains(entry), r.areRelated(o1, o2));
-                }
-            }
-        }
+    void assertRelations(Object... pairs) {
+        RelationAssertions.assertRelations(r, pairs);
     }
 
-    private void assertDirectRelations(Object... pairs) {
-        Set<Entry<Object, Object>> relations = Sets.newHashSet();
-        Set<Object> domain = Sets.newHashSet();
-        for (int i = 0; i < pairs.length; i += 2) {
-            relations.add(Maps.immutableEntry(pairs[i], pairs[i + 1]));
-            domain.add(pairs[i]);
-            domain.add(pairs[i + 1]);
-        }
-
-        for (Object o1 : domain) {
-            for (Object o2 : domain) {
-                if (o1 == o2) {
-                    assertTrue(r.areRelated(o1, o2));
-                } else {
-                    Entry<Object, Object> entry = Maps.immutableEntry(o1, o2);
-                    assertEquals(entry.toString(), relations.contains(entry), r.direct().related(o1).contains(o2));
-                }
-            }
-        }
+    void assertDirectRelations(Object... pairs) {
+        RelationAssertions.assertDirectRelations(r, pairs);
     }
 }

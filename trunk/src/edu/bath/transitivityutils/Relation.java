@@ -7,7 +7,7 @@ package edu.bath.transitivityutils;
  */
 public interface Relation<E> {
     /** optional operation */
-    void relate(E subjectValue, E objectValue);
+    void relate(E subject, E object);
     
-    boolean areRelated(E subjectValue, E objectValue);
+    boolean areRelated(E subject, E object);
 }
