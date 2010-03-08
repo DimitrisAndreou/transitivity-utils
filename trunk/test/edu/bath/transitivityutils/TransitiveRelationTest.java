@@ -218,31 +218,31 @@ public class TransitiveRelationTest {
         r.relate(3, 4);
         r.relate(3, 5);
 
-        assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(r.navigator().related(0)));
-        assertEquals(ImmutableSet.of(2), ImmutableSet.copyOf(r.navigator().related(1)));
-        assertEquals(ImmutableSet.of(4, 5), ImmutableSet.copyOf(r.navigator().related(3)));
-        assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(r.navigator().related(4)));
-        assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(r.navigator().related(5)));
+        assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(r.direct().related(0)));
+        assertEquals(ImmutableSet.of(2), ImmutableSet.copyOf(r.direct().related(1)));
+        assertEquals(ImmutableSet.of(4, 5), ImmutableSet.copyOf(r.direct().related(3)));
+        assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(r.direct().related(4)));
+        assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(r.direct().related(5)));
     }
 
     @Test(expected=UnsupportedOperationException.class)
     public void testDirectlyRelatedWith_Unmodifiable1() {
         r = TransitiveRelation.create();
-        r.navigator().related(0).add(null);
+        r.direct().related(0).add(null);
     }
 
     @Test(expected=UnsupportedOperationException.class)
     public void testDirectlyRelatedWith_Unmodifiable2() {
         r = TransitiveRelation.create();
         r.relate(0, 1);
-        r.navigator().related(0).add(null);
+        r.direct().related(0).add(null);
     }
 
     @Test
     public void testReflexiveEdgesIgnored() {
         r = TransitiveRelation.create();
         r.relate(0, 0);
-        assertTrue(r.navigator().related(0).isEmpty());
+        assertTrue(r.direct().related(0).isEmpty());
     }
 
     private void assertRelations(Object... pairs) {
@@ -281,7 +281,7 @@ public class TransitiveRelationTest {
                     assertTrue(r.areRelated(o1, o2));
                 } else {
                     Entry<Object, Object> entry = Maps.immutableEntry(o1, o2);
-                    assertEquals(entry.toString(), relations.contains(entry), r.navigator().related(o1).contains(o2));
+                    assertEquals(entry.toString(), relations.contains(entry), r.direct().related(o1).contains(o2));
                 }
             }
         }

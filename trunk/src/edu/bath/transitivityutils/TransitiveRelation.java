@@ -102,7 +102,7 @@ public class TransitiveRelation<E> implements Relation<E> {
         return object.contains(subject);
     }
 
-    public Navigator<E> navigator() {
+    public Navigator<E> direct() {
         return navigator;
     }
 
