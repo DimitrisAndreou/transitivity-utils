@@ -15,16 +15,17 @@ import java.util.LinkedList;
 import java.util.Map;
 
 /**
- * A transitive binary relation.
+ * A (transitive, reflexive) binary relation.
  *
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
-public final class TransitiveRelation<E> {
+public class TransitiveRelation<E> implements Relation<E> {
     private final BenderList<E> magicList = BenderList.create();
-    private final Map<E, Node<E>> nodes = Maps.newHashMap();
-    private final Multimap<Node<E>, Node<E>> edges = HashMultimap.create();
+    private final Map<E, Node<E>> nodeMap = Maps.newHashMap();
+    private final Multimap<Node<E>, Node<E>> directRelationships = HashMultimap.create();
+    private final Navigator<E> navigator = new DirectNavigator();
 
-    private TransitiveRelation() { }
+    TransitiveRelation() { }
 
     public static <E> TransitiveRelation<E> create() {
         return new TransitiveRelation<E>();
@@ -34,7 +35,7 @@ public final class TransitiveRelation<E> {
         if (Objects.equal(subjectValue, objectValue)) {
             return;
         }
-        Node<E> subject = nodes.get(subjectValue);
+        Node<E> subject = nodeMap.get(subjectValue);
         Node<E> object = createObjectNode(objectValue, subject);
 
         if (subject != null) {
@@ -46,17 +47,19 @@ public final class TransitiveRelation<E> {
             subject = new Node<E>(
                     anchor = magicList.addAfter(anchor, subjectValue),
                     magicList.addAfter(anchor, subjectValue));
-            nodes.put(subjectValue, subject);
+            nodeMap.put(subjectValue, subject);
         }
-        if (subject != object) {
-            edges.put(subject, object);
-        }
+        directRelationships.put(subject, object);
+        recordRelationship(subjectValue, objectValue);
+        return;
     }
 
+    void recordRelationship(E subjectValue, E objectValue) { }
+
     private Node<E> createObjectNode(E value, Node<E> subject) {
-        Node<E> node = nodes.get(value);
+        Node<E> node = nodeMap.get(value);
         if (node == null) {
-            if (subject != null && !edges.containsKey(subject)) {
+            if (subject != null && !directRelationships.containsKey(subject)) {
                 //subject.pre, post is embedded in another node, so it is possible
                 //to surround it by the new node
                 node = new Node<E>(
@@ -67,7 +70,7 @@ public final class TransitiveRelation<E> {
                     magicList.addAfter(magicList.base().previous(), value),
                     magicList.addAfter(magicList.base().previous(), value));
             }
-            nodes.put(value, node);
+            nodeMap.put(value, node);
         }
         return node;
     }
@@ -78,43 +81,29 @@ public final class TransitiveRelation<E> {
             Node<E> next = toVisit.next();
             if (!next.contains(subject)) {
                 next.intervalSet.addIntervals(subject.intervalSet);
-                toVisit = Iterators.concat(edges.get(next).iterator(), toVisit);
+                toVisit = Iterators.concat(directRelationships.get(next).iterator(), toVisit);
             }
         }
     }
 
     public boolean areRelated(E subjectValue, E objectValue) {
         if (Objects.equal(subjectValue, objectValue)) return true;
-        Node<E> subject = nodes.get(subjectValue);
+
+        Node<E> subject = nodeMap.get(subjectValue);
         if (subject == null) return false;
-        Node<E> object = nodes.get(objectValue);
+
+        Node<E> object = nodeMap.get(objectValue);
         if (object == null) return false;
+        
         return areNodesRelated(subject, object);
-    }
-
-    public boolean areDirectlyRelated(E subjectValue, E objectValue) {
-        if (Objects.equal(subjectValue, objectValue)) return true;
-        Node<E> subject = nodes.get(subjectValue);
-        if (subject == null) return false;
-        Node<E> object = nodes.get(objectValue);
-        if (object == null) return false;
-        return edges.containsEntry(subject, object);
-    }
-
-    private final Function<Node<E>, E> nodeToValue = new Function<Node<E>, E>() {
-        public E apply(Node<E> node) {
-            return node.pre.get();
-        }
-    };
-    public Collection<E> directlyRelatedWith(E subjectValue) {
-        Node<E> subject = nodes.get(subjectValue);
-        if (subject == null) return Collections.emptySet();
-
-        return Collections.unmodifiableCollection(Collections2.transform(edges.get(subject), nodeToValue));
     }
 
     private boolean areNodesRelated(Node<E> subject, Node<E> object) {
         return object.contains(subject);
+    }
+
+    public Navigator<E> navigator() {
+        return navigator;
     }
 
     private static class Node<E> {
@@ -136,6 +125,25 @@ public final class TransitiveRelation<E> {
         @Override
         public String toString() {
             return "[" + pre + ", " + post + "]";
+        }
+    }
+
+    private class DirectNavigator implements Navigator<E> {
+        private final Function<Node<E>, E> nodeToValue = new Function<Node<E>, E>() {
+            public E apply(Node<E> node) {
+                return node.pre.get();
+            }
+        };
+        
+        public Collection<E> related(E subjectValue) {
+            Node<E> subject = nodeMap.get(subjectValue);
+            if (subject == null) return Collections.emptySet();
+
+            return Collections.unmodifiableCollection(Collections2.transform(directRelationships.get(subject), nodeToValue));
+        }
+
+        public Collection<E> domain() {
+            return Collections2.transform(directRelationships.keySet(), nodeToValue);
         }
     }
 }
