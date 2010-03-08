@@ -1,12 +1,12 @@
 package edu.bath.transitivityutils;
 
-import java.util.Collection;
+import java.util.Set;
 
 /**
  *
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
 public interface Navigator<E> {
-    Collection<E> related(E subject);
-    Collection<E> domain();
+    Set<E> related(E subject);
+    Set<E> domain();
 }

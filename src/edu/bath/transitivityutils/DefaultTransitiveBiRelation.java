@@ -1,14 +1,14 @@
 package edu.bath.transitivityutils;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 
 /**
  *
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
 class DefaultTransitiveBiRelation<E> implements TransitiveBiRelation<E> {
-    private final Multimap<E, E> inverseEdges = HashMultimap.create();
+    private final SetMultimap<E, E> inverseEdges = HashMultimap.create();
     private final DefaultTransitiveRelation<E> relation = new DefaultTransitiveRelation<E>() {
         @Override
         void recordRelationship(E subjectValue, E objectValue) {

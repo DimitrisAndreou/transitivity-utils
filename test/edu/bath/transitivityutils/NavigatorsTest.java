@@ -2,6 +2,7 @@ package edu.bath.transitivityutils;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -12,7 +13,7 @@ import static org.junit.Assert.*;
 public class NavigatorsTest {
     @Test
     public void testBasic() {
-        Navigator<String> navigator = Navigators.forMultimap(ImmutableMultimap.of("a", "a1", "a", "a2", "b", "b"));
+        Navigator<String> navigator = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "a", "a2", "b", "b"));
         assertEquals(ImmutableSet.of("a1", "a2"), ImmutableSet.copyOf(navigator.related("a")));
         assertEquals(ImmutableSet.of("b"), ImmutableSet.copyOf(navigator.related("b")));
         assertEquals(ImmutableSet.of(), ImmutableSet.copyOf(navigator.related("c")));
@@ -20,7 +21,7 @@ public class NavigatorsTest {
 
     @Test
     public void testDomain() {
-        Navigator<String> navigator = Navigators.forMultimap(ImmutableMultimap.of("a", "a1", "a", "a2", "b", "b"));
+        Navigator<String> navigator = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "a", "a2", "b", "b"));
 
         assertEquals(ImmutableSet.of("a", "b"), ImmutableSet.copyOf(navigator.domain()));
     }
@@ -28,7 +29,7 @@ public class NavigatorsTest {
     @Test
     public void testInvert() {
         Navigator<String> navigator = Navigators.invert(
-                Navigators.forMultimap(ImmutableMultimap.of("a", "a1", "a", "a2", "b", "b")));
+                Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "a", "a2", "b", "b")));
 
         assertEquals(ImmutableSet.of("a1", "a2", "b"), ImmutableSet.copyOf(navigator.domain()));
 
