@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static edu.bath.transitivityutils.RelationAssertions.*;
 
 /**
  *
@@ -21,11 +22,11 @@ public class TransitiveRelationTest {
     @Test
     public void testReflexivityForUnknownNodes() {
         r = Relations.newTransitiveRelation();
-        assertRelations(
+        assertRelations(r,
                 1, 1, 
                 2, 2);
         
-        assertDirectRelations(
+        assertDirectRelations(r,
                 3, 3,
                 4, 4);
     }
@@ -38,7 +39,7 @@ public class TransitiveRelationTest {
         r.relate(0, 1);
         r.relate(1, 2);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 0, 3,
@@ -58,7 +59,7 @@ public class TransitiveRelationTest {
         r.relate(1, 2);
         r.relate(0, 1);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 0, 3,
@@ -79,7 +80,7 @@ public class TransitiveRelationTest {
         r.relate(0, 1);
         r.relate(2, 0);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 0, 3,
@@ -104,7 +105,7 @@ public class TransitiveRelationTest {
         r.relate(0, 4);
         r.relate(4, 2);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 0, 4,
@@ -126,7 +127,11 @@ public class TransitiveRelationTest {
         r.relate(44, 55);
         r.relate(44, 11);
 
-        assertRelations(11, 22, 22, 33, 11, 33, 22, 11,
+        assertRelations(r,
+                11, 22,
+                22, 33,
+                11, 33,
+                22, 11,
                 44, 55,
                 44, 11,
                 44, 22,
@@ -140,7 +145,7 @@ public class TransitiveRelationTest {
         r.relate(1, 0);
         r.relate(0, 2);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 1, 0,
@@ -155,7 +160,7 @@ public class TransitiveRelationTest {
         r.relate(0, 2);
         r.relate(1, 2);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 1, 0,
@@ -164,7 +169,7 @@ public class TransitiveRelationTest {
         r.relate(4, 5);
         r.relate(4, 1);
 
-        assertRelations(
+        assertRelations(r,
                 0, 1,
                 0, 2,
                 1, 0,
@@ -182,7 +187,7 @@ public class TransitiveRelationTest {
         r.relate(2, 3);
         r.relate(3, 4);
 
-        assertRelations(
+        assertRelations(r,
                 1, 2,
                 1, 3,
                 2, 3);
@@ -197,7 +202,7 @@ public class TransitiveRelationTest {
         r.relate(3, 4);
         r.relate(3, 5);
 
-        assertDirectRelations(
+        assertDirectRelations(r,
                 1, 2,
                 2, 3,
                 3, 4,
@@ -240,11 +245,24 @@ public class TransitiveRelationTest {
         assertTrue(r.direct().related(0).isEmpty());
     }
 
-    void assertRelations(Object... pairs) {
-        RelationAssertions.assertRelations(r, pairs);
-    }
+    @Test
+    public void testSerializable() {
+        r = Relations.newTransitiveRelation();
+        r.relate(0, 1);
+        r.relate(1, 0);
+        r.relate(0, 2);
+        r.relate(1, 2);
+        r.relate(4, 5);
+        r.relate(4, 1);
 
-    void assertDirectRelations(Object... pairs) {
-        RelationAssertions.assertDirectRelations(r, pairs);
+        assertRelations(SerializationUtils.serializedCopy(r),
+            0, 1,
+            0, 2,
+            1, 0,
+            1, 2,
+            4, 0,
+            4, 1,
+            4, 2,
+            4, 5);
     }
-}
+ }

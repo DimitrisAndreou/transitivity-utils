@@ -52,7 +52,7 @@ public class BenderListTest {
         genericTest(randomChooser);
     }
 
-    private <T> void genericTest(Chooser chooser) {
+    private <T> BenderList<?> genericTest(Chooser chooser) {
         final int total = 10240;
         List<Node<Integer>> elements = new ArrayList<Node<Integer>>(total);
 
@@ -70,12 +70,15 @@ public class BenderListTest {
         for (Node<Integer> node = list.base().next(); node != list.base(); node = node.next()) {
             assertTrue(node.previous().precedes(node));
         }
+        return list;
     }
 
-    @Test
+    @Test(expected=IllegalStateException.class)
     public void testAddAfterDeleted() {
         BenderList<Integer> list = BenderList.create();
-
+        Node<Integer> n = list.addAfter(list.base(), 5);
+        list.delete(n);
+        list.addAfter(n, 10);
     }
 
     @Test
@@ -166,5 +169,26 @@ public class BenderListTest {
     private static void assertPrecedes(Node n1, Node n2) {
         assertTrue(n1.precedes(n2));
         assertFalse(n2.precedes(n1));
+    }
+
+    @Test
+    public void testSerializable() {
+        assertSerializable(genericTest(randomChooser));
+    }
+
+    private <T> void assertSerializable(BenderList<T> list1) {
+        BenderList<T> list2 = SerializationUtils.serializedCopy(list1);
+
+        assertEquals(list1.size(), list2.size());
+        assertAscending(list2);
+        Node<T> n1 = list1.base();
+        Node<T> n2 = list2.base();
+
+        do {
+            assertEquals(n1.get(), n2.get());
+            n1 = n1.next();
+            n2 = n2.next();
+        } while (n1 != list1.base());
+        assertSame(list2.base(), n2);
     }
 }

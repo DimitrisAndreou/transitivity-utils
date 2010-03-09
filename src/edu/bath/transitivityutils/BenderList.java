@@ -1,6 +1,7 @@
 package edu.bath.transitivityutils;
 
 import com.google.common.base.Preconditions;
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -10,20 +11,22 @@ import java.util.NoSuchElementException;
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  * @see <a href="http://portal.acm.org/citation.cfm?id=740822">Two Simplified Algorithms for Maintaining Order in a List (Bender et al., 2002)</a>
  */
-public class BenderList<E> implements OrderList<E> {
-    private final Node<E> base = createNode(null, Long.MIN_VALUE);
-    private int size = 0;
-
-    long relabels = 0;
+public class BenderList<E> implements OrderList<E>, Iterable<E>, Serializable {
+    private transient /*final*/ Node<E> base;
+    private transient int size = 0;
     
-    BenderList() { }
+    private static final long serialVersionUID = -6060298699521132512L;
+
+    private BenderList() {
+        init();
+    }
+
+    private void init() {
+        base = new Node<E>(null, Long.MIN_VALUE);
+    }
 
     public static <E> BenderList<E> create() {
         return new BenderList<E>();
-    }
-
-    Node<E> createNode(E value, long tag) {
-        return new Node<E>(value, tag);
     }
 
     public OrderList.Node<E> base() {
@@ -68,7 +71,7 @@ public class BenderList<E> implements OrderList<E> {
                 newTag = average(n.tag, n.next.tag);
             }
         }
-        Node<E> newNode = createNode(value, newTag);
+        Node<E> newNode = new Node<E>(value, newTag);
         newNode.prev = n;
         newNode.next = n.next;
 
@@ -130,7 +133,6 @@ public class BenderList<E> implements OrderList<E> {
         if (step > 1) {
             for (int i = 0; i < count; i++) {
                 cursor.tag = pos;
-                relabels++;
                 pos += step;
                 cursor = cursor.next;
             }
@@ -139,7 +141,6 @@ public class BenderList<E> implements OrderList<E> {
             long slack = range - count;
             for (int i = 0; i < elementCount; i++) {
                 cursor.tag = pos;
-                relabels++;
                 pos++;
                 if (n == cursor) {
                     pos += slack;
@@ -200,7 +201,7 @@ public class BenderList<E> implements OrderList<E> {
         private Node<E> prev;
         private Node<E> next;
         private E value;
-
+        
         protected Node(E value, long tag) {
             this.value = value;
             this.tag = tag;
@@ -218,7 +219,7 @@ public class BenderList<E> implements OrderList<E> {
 
         @Override
         public String toString() {
-            return "" + value + "(" + tag + ")";
+            return String.valueOf(value);
         }
 
         public final OrderList.Node<E> next() {
@@ -237,6 +238,26 @@ public class BenderList<E> implements OrderList<E> {
             E old = value;
             value = newValue;
             return old;
+        }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
+        s.writeInt(size);
+        int total = 0;
+        for (E element : this) {
+            total++;
+            s.writeObject(element);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void readObject(java.io.ObjectInputStream s)
+        throws java.io.IOException, ClassNotFoundException {
+        init();
+        int count = s.readInt();
+        s.defaultReadObject();
+        for (int i = 0; i < count; i++) {
+            addAfter(base.previous(), (E)s.readObject());
         }
     }
 }

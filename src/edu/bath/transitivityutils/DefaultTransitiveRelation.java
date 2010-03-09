@@ -2,11 +2,14 @@ package edu.bath.transitivityutils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,11 +22,13 @@ import java.util.Set;
  *
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
-class DefaultTransitiveRelation<E> implements TransitiveRelation<E> {
+class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializable {
     private final BenderList<E> magicList = BenderList.create();
     private final Map<E, Node<E>> nodeMap = Maps.newHashMap();
     private final SetMultimap<Node<E>, Node<E>> directRelationships = HashMultimap.create();
     private final Navigator<E> navigator = new DirectNavigator();
+
+    private static final long serialVersionUID = -4031451040065579682L;
 
     DefaultTransitiveRelation() { }
 
@@ -46,11 +51,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E> {
             nodeMap.put(subjectValue, subject);
         }
         directRelationships.put(subject, object);
-        recordRelationship(subjectValue, objectValue);
-        return;
     }
-
-    void recordRelationship(E subjectValue, E objectValue) { }
 
     private Node<E> createObjectNode(E value, Node<E> subject) {
         Node<E> node = nodeMap.get(value);
@@ -142,19 +143,78 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E> {
         public Set<E> domain() {
             return transformSet(directRelationships.keySet(), nodeToValue);
         }
+    }
+    
+    private Object writeReplace() {
+        return new SerializationProxy<E>(navigator);
+    }
 
-        <A, B> Set<B> transformSet(final Set<A> set, final Function<A, ? extends B> transformer) {
-            return new AbstractSet<B>() {
-                @Override
-                public Iterator<B> iterator() {
-                    return Iterators.transform(set.iterator(), transformer);
-                }
+    private static class SerializationProxy<E> implements Serializable {
+        transient Navigator<E> navigator;
+        
+        private static final long serialVersionUID = 711361401943593391L;
 
-                @Override
-                public int size() {
-                    return set.size();
-                }
-            };
+        SerializationProxy() { }
+        SerializationProxy(Navigator<E> navigator) {
+            this.navigator = navigator;
         }
+
+        //Writing the number of domain elements, then iterate over the domain and write:
+        // - the domain element
+        // - the number of related (to that) elements
+        // - the related elements themselves
+        private void writeObject(ObjectOutputStream s) throws IOException {
+            Set<E> domain = navigator.domain();
+            s.writeInt(domain.size());
+            for (E subject : domain) {
+                s.writeObject(subject);
+                Set<E> related = navigator.related(subject);
+                s.writeInt(related.size());
+                for (E object : related) {
+                    s.writeObject(object);
+                }
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+            SetMultimap<Object, Object> mm = HashMultimap.create();
+            int domainCount = s.readInt();
+            for (int i = 0; i < domainCount; i++) {
+                Object subject = s.readObject();
+                Collection<Object> objects = mm.get(subject);
+                int objectCount = s.readInt();
+                for (int j = 0; j < objectCount; j++) {
+                    Object object = s.readObject();
+                    mm.put(object, object);
+                    objects.add(object);
+                }
+            }
+            navigator = (Navigator)Navigators.forMultimap(mm);
+        }
+
+        private Object readResolve() {
+            DefaultTransitiveRelation<E> rel = new DefaultTransitiveRelation<E>();
+            for (E subject : navigator.domain()) {
+                for (E object : navigator.related(subject)) {
+                    rel.relate(subject, object);
+                }
+            }
+            return rel;
+        }
+    }
+    
+    static <A, B> Set<B> transformSet(final Set<A> set, final Function<? super A, ? extends B> transformer) {
+        return new AbstractSet<B>() {
+            @Override
+            public Iterator<B> iterator() {
+                return Iterators.transform(set.iterator(), transformer);
+            }
+
+            @Override
+            public int size() {
+                return set.size();
+            }
+        };
     }
 }

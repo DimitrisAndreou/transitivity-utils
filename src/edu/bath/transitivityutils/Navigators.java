@@ -3,6 +3,7 @@ package edu.bath.transitivityutils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -26,8 +27,10 @@ public final class Navigators {
         return forMultimap(relationships);
     }
 
-    private static class MultimapNavigator<E> implements Navigator<E> {
+    private static class MultimapNavigator<E> implements Navigator<E>, Serializable {
         private final SetMultimap<E, E> multimap;
+
+        private static final long serialVersionUID = 8800521367524594039L;
 
         MultimapNavigator(SetMultimap<E, E> multimap) {
             this.multimap = multimap;

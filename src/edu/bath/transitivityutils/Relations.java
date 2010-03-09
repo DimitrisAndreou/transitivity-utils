@@ -48,10 +48,12 @@ public final class Relations {
         return closure;
     }
 
+    //the returned object is serializable
     public static <E> TransitiveRelation<E> newTransitiveRelation() {
         return new DefaultTransitiveRelation<E>();
     }
 
+    //the returned object is serializable
     public static <E> TransitiveBiRelation<E> newTransitiveBiRelation() {
         return new DefaultTransitiveBiRelation<E>();
     }
