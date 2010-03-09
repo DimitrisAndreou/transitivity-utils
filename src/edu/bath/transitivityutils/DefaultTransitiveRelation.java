@@ -47,7 +47,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
             OrderList.Node<E> anchor = object.post.previous();
             subject = new Node<E>(
                     anchor = magicList.addAfter(anchor, subjectValue),
-                    magicList.addAfter(anchor, subjectValue));
+                    magicList.addAfter(anchor, null)); //we don't need the value in post nodes, we get it from pre nodes
             nodeMap.put(subjectValue, subject);
         }
         directRelationships.put(subject, object);
@@ -61,11 +61,11 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
                 //to surround it by the new node
                 node = new Node<E>(
                         magicList.addAfter(subject.pre.previous(), value),
-                        magicList.addAfter(subject.post, value));
+                        magicList.addAfter(subject.post, null)); //we don't need the value in post nodes, we get it from pre nodes
             } else {
                 node = new Node<E>(
                     magicList.addAfter(magicList.base().previous(), value),
-                    magicList.addAfter(magicList.base().previous(), value));
+                    magicList.addAfter(magicList.base().previous(), null)); //we don't need the value in post nodes, we get it from pre nodes
             }
             nodeMap.put(value, node);
         }
