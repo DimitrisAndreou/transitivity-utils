@@ -1,5 +1,6 @@
 package edu.bath.transitivityutils;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import edu.bath.transitivityutils.OrderList.Node;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ final class MergingIntervalSet {
     }
     
     void addIntervals(MergingIntervalSet other) {
-        for (int i = 0; i < other.array.length; i += 2) {
+        for (int i = 0; i < other.size; i += 2) {
             addInterval(other.array[i], other.array[i + 1]);
         }
     }
@@ -115,6 +116,10 @@ final class MergingIntervalSet {
 
     @Override
     public String toString() {
-        return Arrays.toString(array);
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        Joiner.on(", ").appendTo(sb, Arrays.asList(array).subList(0, size));
+        sb.append("]");
+        return sb.toString();
     }
 }

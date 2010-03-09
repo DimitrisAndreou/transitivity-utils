@@ -103,6 +103,11 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         return navigator;
     }
 
+    @Override
+    public String toString() {
+        return nodeMap.toString();
+    }
+
     private static class Node<E> {
         final OrderList.Node<E> pre;
         final OrderList.Node<E> post;
@@ -121,7 +126,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
 
         @Override
         public String toString() {
-            return "[" + pre + ", " + post + "]";
+            return intervalSet.toString();
         }
     }
 
