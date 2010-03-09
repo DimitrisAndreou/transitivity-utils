@@ -1,5 +1,6 @@
 package edu.bath.transitivityutils;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import java.io.Serializable;
 import java.util.Iterator;
@@ -158,15 +159,8 @@ public class BenderList<E> implements OrderList<E>, Iterable<E>, Serializable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        Node<E> n = base.next;
         sb.append("[");
-        while (n != base) {
-            sb.append(n.value).append("(").append(n.tag).append(")");
-            if (n.next != base) {
-                sb.append(", ");
-            }
-            n = n.next;
-        }
+        Joiner.on(", ").appendTo(sb, this);
         sb.append("]");
         return sb.toString();
     }

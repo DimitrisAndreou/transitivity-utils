@@ -265,4 +265,21 @@ public class TransitiveRelationTest {
             4, 2,
             4, 5);
     }
+
+    @Test
+    public void testRegression1() {
+        TransitiveRelation<String> rel = Relations.newTransitiveRelation();
+
+        rel.relate("AAA", "BBB");
+        rel.relate("AAA", "CCC");
+        rel.relate("CCC", "DDD");
+        rel.relate("CCC", "EEE");
+        rel.relate("EEE", "FFF");
+
+        rel.relate("EEE", "GGG");
+        //the last causes a propagation of the form:
+        //[preAAA, postAAA, preCCC, postCCC, preEEE, postEEE] propagate into [GGG, GGG]
+        //the first array has size=6 but length=8. Making sure we don't propagate the remaining two nulls of the array!
+        //otherwise a NPE is thrown
+    }
  }
