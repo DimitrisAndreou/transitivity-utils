@@ -104,6 +104,13 @@ final class MergingIntervalSet {
                 (index & 1) == 0; //node does not exist, but is inside an interval, not outside
     }
 
+    boolean contains(MergingIntervalSet other) {
+        for (int i = 0; i < other.size; i += 2) {
+            if (!contains(other.array[i])) return false;
+        }
+        return true;
+    }
+
     private static class NodeComparator implements Comparator<OrderList.Node<?>> {
         static final NodeComparator INSTANCE = new NodeComparator();
         public int compare(Node<?> o1, Node<?> o2) {

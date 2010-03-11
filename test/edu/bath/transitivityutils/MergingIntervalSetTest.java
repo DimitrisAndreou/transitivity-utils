@@ -1,6 +1,7 @@
 package edu.bath.transitivityutils;
 
 import edu.bath.transitivityutils.OrderList.Node;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
@@ -13,11 +14,21 @@ public class MergingIntervalSetTest {
     List<Node<Integer>> nodes;
     MergingIntervalSet set;
 
+    private static final Field arrayField;
+    static {
+        try {
+            arrayField = MergingIntervalSet.class.getDeclaredField("array");
+            arrayField.setAccessible(true);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+    }
+
     @Before
     public void init() {
         list = BenderList.create();
         nodes = new ArrayList<Node<Integer>>();
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 16; i++) {
             nodes.add(list.addAfter(list.base().previous(), i));
         }
         set = new MergingIntervalSet();
@@ -171,6 +182,43 @@ public class MergingIntervalSetTest {
 
         assertContains(nodes.get(1), nodes.get(3));
         assertEquals(2, set.size());
+    }
+
+    @Test
+    public void testResizingBehavior1() {
+        set.addInterval(nodes.get(1), nodes.get(2));
+        assertEquals(2, capacityOf(set));
+
+        set.addInterval(nodes.get(3), nodes.get(4));
+        assertEquals(4, capacityOf(set));
+
+        set.addInterval(nodes.get(5), nodes.get(6));
+        assertEquals(8, capacityOf(set));
+
+        set.addInterval(nodes.get(7), nodes.get(8));
+        assertEquals(8, capacityOf(set));
+
+        set.addInterval(nodes.get(9), nodes.get(10));
+        assertEquals(16, capacityOf(set));
+
+        set.addInterval(nodes.get(11), nodes.get(12));
+        assertEquals(16, capacityOf(set));
+
+        //this steps makes size 2
+        set.addInterval(nodes.get(0), nodes.get(13));
+        assertEquals(2, set.size());
+        assertEquals(2, capacityOf(set));
+
+        set.addInterval(nodes.get(14), nodes.get(15));
+        assertEquals(4, capacityOf(set));
+    }
+
+    private int capacityOf(MergingIntervalSet mis) {
+        try {
+            return ((Node<?>[])arrayField.get(mis)).length;
+        } catch (Exception e) {
+            throw new Error(e);
+        }
     }
 
     private void assertContains(Node<Integer> pre, Node<Integer> post) {

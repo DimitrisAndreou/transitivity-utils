@@ -1,6 +1,10 @@
 package edu.bath.transitivityutils;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.SetMultimap;
+import java.util.Random;
+import java.util.Set;
 import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -267,19 +271,84 @@ public class TransitiveRelationTest {
     }
 
     @Test
+    public void testTransitivity1() {
+        r = Relations.newTransitiveRelation();
+
+        r.relate(0, 1);
+        r.relate(2, 3);
+        r.relate(1, 2);
+
+        assertRelations(r,
+                0, 1,
+                0, 2,
+                0, 3,
+                1, 2,
+                1, 3,
+                2, 3);
+    }
+
+    @Test
+    public void testTransitivity2() {
+        r = Relations.newTransitiveRelation();
+
+        r.relate(0, 1);
+        r.relate(0, 2);
+        r.relate(2, 3);
+
+        assertTrue(r.areRelated(0, 2));
+        assertTrue(r.areRelated(2, 3));
+        assertTrue(r.areRelated(0, 3));
+    }
+
+    @Test
+    public void testRandomized() {
+        r = Relations.newTransitiveRelation();
+        SetMultimap<Integer, Integer> edges = HashMultimap.create();
+        int total = 100;
+        Random random = new Random(0);
+
+        for (int subject = 0; subject < total; subject++) {
+            for (int object = 0; object < total; object++) {
+                if (random.nextDouble() < 0.2) {
+                    r.relate(subject, object);
+                    edges.put(subject, object);
+                }
+            }
+        }
+
+        for (int subject = 0; subject < total; subject++) {
+            Set<Object> closure = Relations.closure(r.direct(), subject);
+            for (int object = 0; object < total; object++) {
+                assertEquals(closure.contains(object), r.areRelated(subject, object));
+            }
+        }
+    }
+
+    @Test
     public void testRegression1() {
-        TransitiveRelation<String> rel = Relations.newTransitiveRelation();
+        TransitiveRelation<String> r = Relations.newTransitiveRelation();
 
-        rel.relate("AAA", "BBB");
-        rel.relate("AAA", "CCC");
-        rel.relate("CCC", "DDD");
-        rel.relate("CCC", "EEE");
-        rel.relate("EEE", "FFF");
+        r.relate("AAA", "BBB");
+        r.relate("AAA", "CCC");
+        r.relate("CCC", "DDD");
+        r.relate("CCC", "EEE");
+        r.relate("EEE", "FFF");
 
-        rel.relate("EEE", "GGG");
+        r.relate("EEE", "GGG");
         //the last causes a propagation of the form:
         //[preAAA, postAAA, preCCC, postCCC, preEEE, postEEE] propagate into [GGG, GGG]
         //the first array has size=6 but length=8. Making sure we don't propagate the remaining two nulls of the array!
         //otherwise a NPE is thrown
+
+        assertRelations(r,
+            "AAA", "BBB",
+            "AAA", "CCC",
+            "AAA", "DDD",
+            "AAA", "EEE",
+            "AAA", "FFF",
+            "CCC", "DDD",
+            "CCC", "EEE",
+            "CCC", "FFF",
+            "EEE", "FFF");
     }
  }

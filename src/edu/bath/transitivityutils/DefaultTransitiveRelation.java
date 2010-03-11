@@ -40,9 +40,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         Node<E> object = createObjectNode(objectValue, subject);
 
         if (subject != null) {
-            if (!areNodesRelated(subject, object)) {
-                propagate(subject, object);
-            }
+            propagate(subject, object);
         } else {
             OrderList.Node<E> anchor = object.post.previous();
             subject = new Node<E>(
@@ -76,10 +74,11 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         Iterator<Node<E>> toVisit = Iterators.singletonIterator(object);
         while (toVisit.hasNext()) {
             Node<E> next = toVisit.next();
-            if (!next.contains(subject)) {
-                next.intervalSet.addIntervals(subject.intervalSet);
-                toVisit = Iterators.concat(directRelationships.get(next).iterator(), toVisit);
+            if (next.intervalSet.contains(subject.intervalSet)) {
+                continue; //this gracefully handles cycles
             }
+            next.intervalSet.addIntervals(subject.intervalSet);
+            toVisit = Iterators.concat(directRelationships.get(next).iterator(), toVisit);
         }
     }
 
@@ -96,7 +95,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
     }
 
     private boolean areNodesRelated(Node<E> subject, Node<E> object) {
-        return object.contains(subject);
+        return object.intervalSet.contains(subject.pre);
     }
 
     public Navigator<E> direct() {
@@ -118,10 +117,6 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
             this.pre = pre;
             this.post = post;
             intervalSet.addInterval(pre, post);
-        }
-
-        boolean contains(Node<E> other) {
-            return intervalSet.contains(other.pre);
         }
 
         @Override
