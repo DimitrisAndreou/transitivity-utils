@@ -58,7 +58,7 @@ public final class Relations {
         return new DefaultTransitiveBiRelation<E>();
     }
 
-    public static <E> void merge(TransitiveRelation<E> relation, Navigator<E> relationships) {
+    public static <E> void merge(TransitiveRelation<? super E> relation, Navigator<E> relationships) {
         //to be optimized later, much better algorithms (as per the labeling they produce) exist
         //i.e., optimal tree cover, longest path
         for (E subject : relationships.domain()) {
