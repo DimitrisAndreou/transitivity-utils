@@ -3,6 +3,7 @@ package edu.bath.transitivityutils;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static edu.bath.transitivityutils.RelationAssertions.*;
 
 /**
  *
@@ -33,7 +34,7 @@ public class TransitiveBiRelationTest {
         rel.relate(7, 8);
         rel.relate(8, 8);
 
-        RelationAssertions.assertBiRelations(rel,
+        assertBiRelations(rel,
                 1, 2,
                 1, 3,
                 1, 4,
@@ -57,7 +58,7 @@ public class TransitiveBiRelationTest {
         rel.inverse().relate(8, 7);
         rel.relate(8, 8);
 
-        RelationAssertions.assertBiRelations(rel,
+        assertBiRelations(rel,
                 1, 2,
                 1, 3,
                 1, 4,
@@ -81,7 +82,7 @@ public class TransitiveBiRelationTest {
         rel.relate(7, 8);
         rel.relate(8, 8);
 
-        RelationAssertions.assertBiRelations(SerializationUtils.serializedCopy(rel),
+        assertBiRelations(SerializationUtils.serializedCopy(rel),
                 1, 2,
                 1, 3,
                 1, 4,
