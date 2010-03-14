@@ -1,4 +1,4 @@
 #labels Featured
 = Javadocs =
 
-http://code.google.com/p/transitivity-utils/source/browse/trunk/dist/javadoc/index.html
+http://code.google.com/p/transitivity-utils/source/browse/trunk/dist/javadoc/index.html?http://code.google.com/p/transitivity-utils/source/browse/trunk/dist/javadoc/index.html
