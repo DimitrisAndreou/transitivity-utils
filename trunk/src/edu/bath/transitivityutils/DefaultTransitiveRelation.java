@@ -55,7 +55,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         Node<E> node = nodeMap.get(value);
         if (node == null) {
             if (subject != null && !directRelationships.containsKey(subject)) {
-                //subject.pre, post is embedded in another node, so it is possible
+                //subject.pre, post is not embedded in another node, so it is possible
                 //to surround it by the new node
                 node = new Node<E>(
                         magicList.addAfter(subject.pre.previous(), value),

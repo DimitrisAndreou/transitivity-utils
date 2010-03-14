@@ -317,7 +317,7 @@ public class TransitiveRelationTest {
         }
 
         for (int subject = 0; subject < total; subject++) {
-            Set<Object> closure = Relations.closure(r.direct(), subject);
+            Set<Object> closure = Navigators.closure(r.direct(), subject);
             for (int object = 0; object < total; object++) {
                 assertEquals(closure.contains(object), r.areRelated(subject, object));
             }

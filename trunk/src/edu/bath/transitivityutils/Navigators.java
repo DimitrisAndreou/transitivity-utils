@@ -1,10 +1,19 @@
 package edu.bath.transitivityutils;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -86,5 +95,58 @@ public final class Navigators {
         public Set<E> domain() {
             return multimap.keySet();
         }
+    }
+
+    /**
+     * Returns the transitive closure of an object (which always includes the object itself),
+     * which is the set of objects that are (by any number of steps) reachable from
+     * the specified object, using the supplied navigator.
+     *
+     * @param navigator the navigator to be used to compute the transitive closure of an element
+     * @param object an object (defined in the {@linkplain Navigator#domain() domain} of the navigator)
+     * @return the transitive closure of the element (which includes the element itself)
+     */
+    public static <E> Set<E> closure(Navigator<E> navigator, E object) {
+        return closureOfMany(navigator, Collections.singleton(object));
+    }
+
+    /**
+     * Returns the unon of the transitive closures of some objects (which always includes the objects themselves),
+     * which is the set of objects that are (by any number of steps) reachable from
+     * any of the specified objects, using the supplied navigator.
+     *
+     * <p>When the transitive
+     * closures of the objects are expected to overlap, this method is likely to be more efficient than
+     * computing separately the transitive closure of each object and then computing the union of them.
+     *
+     * @param navigator the navigator to be used to compute the transitive closure of an element
+     * @param objects some objects (defined in the {@linkplain Navigator#domain() domain} of the navigator)
+     * @return the transitive closure of the element (which includes the element itself)
+     */
+    public static <E> Set<E> closureOfMany(Navigator<E> navigator, Iterable<? extends E> objects) {
+        Set<E> closure = Sets.newHashSet();
+        Iterator<? extends E> toExplore = objects.iterator();
+
+        while (toExplore.hasNext()) {
+            E next = toExplore.next();
+            if (closure.contains(next)) {
+                continue;
+            }
+            closure.add(next);
+            toExplore = Iterators.concat(navigator.related(next).iterator(), toExplore); //adding the directly related elements
+        }
+        return closure;
+    }
+
+    static <E> List<E> topologicalOrder(Navigator<E> acyclicNavigator) {
+        final List<E> topologicalOrder = Lists.newArrayListWithCapacity(acyclicNavigator.domain().size());
+        new Dfs<E>(acyclicNavigator) {
+            @Override
+            protected void postVisit(E value) {
+                topologicalOrder.add(value);
+            }
+        }.execute(false); //false: not allowing cycles
+        
+        return topologicalOrder;
     }
 }
