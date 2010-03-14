@@ -1,11 +1,11 @@
 package edu.bath.transitivityutils;
 
 import edu.bath.transitivityutils.OrderList.Node;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
  *
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
-public class BenderListTest {
+public class OrderListTest {
     private interface Chooser {
         <T> T choose(List<T> list);
     }
@@ -52,11 +52,11 @@ public class BenderListTest {
         genericTest(randomChooser);
     }
 
-    private <T> BenderList<?> genericTest(Chooser chooser) {
+    private <T> OrderList<?> genericTest(Chooser chooser) {
         final int total = 10240;
         List<Node<Integer>> elements = new ArrayList<Node<Integer>>(total);
 
-        BenderList<Integer> list = BenderList.create();
+        OrderList<Integer> list = OrderList.create();
         elements.add(list.base());
         for (int i = 0; i < total; i++) {
             Node<Integer> left = chooser.choose(elements);
@@ -75,7 +75,7 @@ public class BenderListTest {
 
     @Test(expected=IllegalStateException.class)
     public void testAddAfterDeleted() {
-        BenderList<Integer> list = BenderList.create();
+        OrderList<Integer> list = OrderList.create();
         Node<Integer> n = list.addAfter(list.base(), 5);
         list.delete(n);
         list.addAfter(n, 10);
@@ -84,7 +84,7 @@ public class BenderListTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testSize() {
-        BenderList list = BenderList.create();
+        OrderList list = OrderList.create();
         assertEquals(0, list.size());
 
         Node n1 = list.addAfter(list.base(), null);
@@ -115,7 +115,7 @@ public class BenderListTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testDelete() {
-        BenderList list = BenderList.create();
+        OrderList list = OrderList.create();
         Node node = list.addAfter(list.base(), null);
 
         assertTrue(node.isValid());
@@ -128,24 +128,60 @@ public class BenderListTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testCannotDeleteBase() {
-        BenderList list = BenderList.create();
+        OrderList list = OrderList.create();
         assertFalse(list.delete(list.base()));
     }
 
     @Test
+    public void testBaseIsValid() {
+        OrderList list = OrderList.create();
+        assertTrue(list.base().isValid());
+    }
+
+    @Test(expected=IllegalStateException.class)
+    public void testPrecedesDeleted1() {
+        OrderList list = OrderList.create();
+        Node n1 = list.addAfter(list.base(), null);
+        Node n2 = list.addAfter(list.base(), null);
+        list.delete(n1);
+        n1.precedes(n2);
+    }
+
+    @Test(expected=IllegalStateException.class)
+    public void testPrecedesDeleted2() {
+        OrderList list = OrderList.create();
+        Node n1 = list.addAfter(list.base(), null);
+        Node n2 = list.addAfter(list.base(), null);
+        list.delete(n2);
+        n1.precedes(n2);
+    }
+
+    @Test(expected=NoSuchElementException.class)
+    public void testBaseGet() {
+        OrderList<String> list = OrderList.create();
+        list.get(list.base());
+    }
+
+    @Test(expected=NoSuchElementException.class)
+    public void testBaseSet() {
+        OrderList<String> list = OrderList.create();
+        list.set(list.base(), null);
+    }
+
+    @Test
     public void simpleTest() {
-        BenderList<Void> list = BenderList.create();
+        OrderList<Void> list = OrderList.create();
 
-        BenderList.Node<Void> b = (BenderList.Node<Void>)list.base();
-        BenderList.Node<Void> n0 = (BenderList.Node<Void>)list.addAfter(b, null);
-        BenderList.Node<Void> n1 = (BenderList.Node<Void>)list.addAfter(n0, null);
-        BenderList.Node<Void> n2 = (BenderList.Node<Void>)list.addAfter(n1, null);
-        BenderList.Node<Void> n3 = (BenderList.Node<Void>)list.addAfter(n2, null);
+        OrderList.Node<Void> b = (OrderList.Node<Void>)list.base();
+        OrderList.Node<Void> n0 = (OrderList.Node<Void>)list.addAfter(b, null);
+        OrderList.Node<Void> n1 = (OrderList.Node<Void>)list.addAfter(n0, null);
+        OrderList.Node<Void> n2 = (OrderList.Node<Void>)list.addAfter(n1, null);
+        OrderList.Node<Void> n3 = (OrderList.Node<Void>)list.addAfter(n2, null);
 
-        n0.tag = -1;
-        n1.tag = 0;
-        n2.tag = 1;
-        n3.tag = 3;
+        setTag(n0, -1);
+        setTag(n1, 0);
+        setTag(n2, 1);
+        setTag(n3, 3);
 
         Node<Void> n4 = (Node<Void>)list.addAfter(n1, null);
         assertAscending(list);
@@ -156,12 +192,12 @@ public class BenderListTest {
         assertPrecedes(n2, n3);
     }
 
-    private static void assertAscending(BenderList<?> list) {
-        BenderList.Node<?> node = (BenderList.Node<?>)list.base().next();
+    private static void assertAscending(OrderList<?> list) {
+        OrderList.Node<?> node = (OrderList.Node<?>)list.base().next();
         long last = Long.MIN_VALUE;
         while (node != list.base()) {
-            assertTrue(last < node.tag);
-            node = (BenderList.Node<?>)node.next();
+            assertTrue(last < getTag(node));
+            node = (OrderList.Node<?>)node.next();
         }
     }
 
@@ -176,19 +212,44 @@ public class BenderListTest {
         assertSerializable(genericTest(randomChooser));
     }
 
-    private <T> void assertSerializable(BenderList<T> list1) {
-        BenderList<T> list2 = SerializationUtils.serializedCopy(list1);
+    private <T> void assertSerializable(OrderList<T> list1) {
+        OrderList<T> list2 = SerializationUtils.serializedCopy(list1);
 
         assertEquals(list1.size(), list2.size());
         assertAscending(list2);
-        Node<T> n1 = list1.base();
-        Node<T> n2 = list2.base();
+        Node<T> n1 = list1.base().next();
+        Node<T> n2 = list2.base().next();
 
         do {
-            assertEquals(n1.get(), n2.get());
+            assertEquals(list1.get(n1), list2.get(n2));
             n1 = n1.next();
             n2 = n2.next();
         } while (n1 != list1.base());
         assertSame(list2.base(), n2);
+    }
+
+    private static final Field tagField;
+    static {
+        try {
+            tagField = OrderList.Node.class.getDeclaredField("tag");
+            tagField.setAccessible(true);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+    }
+    private static void setTag(Node<?> node, long tag) {
+        try {
+            tagField.set(node, tag);
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
+    }
+
+    private static long getTag(Node<?> node) {
+        try {
+            return tagField.getLong(node);
+        } catch (Exception ex) {
+            throw new Error(ex);
+        }
     }
 }
