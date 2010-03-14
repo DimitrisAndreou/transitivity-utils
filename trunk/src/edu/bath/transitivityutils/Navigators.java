@@ -8,32 +8,45 @@ import java.io.Serializable;
 import java.util.Set;
 
 /**
- *
+ * Provides static utility methods for creating and working with {@link
+ * Navigator} instances.
+ * 
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
 public final class Navigators {
     private Navigators() { }
 
+    /**
+     * Creates a {@code Navigator} <em>view</em> of the supplied {@link SetMultimap} instance.
+     * The {@code domain()} of the created navigator will be the {@code keySet()} of the multimap,
+     * whereas the navigator's {@code related(element)} invocations will be translated
+     * to {@code multimap.get(element)} invocations.
+     *
+     * <p>The returned navigator will be serializable if the specified multimap is serializable.
+     *
+     * @param multimap the backing multimap of the returned navigator view
+     */
     public static <E> Navigator<E> forMultimap(SetMultimap<E, E> multimap) {
         return new MultimapNavigator<E>(Preconditions.checkNotNull(multimap));
     }
 
     //view
     //serializable if domain and navigationFunction is
+    /**
+     * Creates a {@code Navigator} <em>view</em> of the supplied domain and function.
+     * The specified function is used to implement the returned navigator's {@code related(element)}
+     * invocations.
+     *
+     * <p>The returned navigator will be serializable if the specified set and function are serializable.
+     *
+     * @param domain the domain of the returned navigator
+     * @param navigationFunction the function that will provide the implementation
+     * of navigator's {@linkplain Navigator#related(Object) related(Object)} method
+     */
     public static <E> Navigator<E> forFunction(Set<E> domain,
             Function<? super E, ? extends Set<E>> navigationFunction) {
         return new FunctionNavigator<E>(Preconditions.checkNotNull(domain),
                 Preconditions.checkNotNull(navigationFunction));
-    }
-
-    public static <E> Navigator<E> invert(Navigator<E> navigator) {
-        SetMultimap<E, E> relationships = HashMultimap.create();
-        for (E subject : navigator.domain()) {
-            for (E object : navigator.related(subject)) {
-                relationships.put(object, subject);
-            }
-        }
-        return forMultimap(relationships);
     }
 
     private static class FunctionNavigator<E> implements Navigator<E>, Serializable {

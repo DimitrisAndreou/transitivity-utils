@@ -23,7 +23,7 @@ import java.util.Set;
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
 class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializable {
-    private final BenderList<E> magicList = BenderList.create();
+    private final OrderList<E> magicList = OrderList.create();
     private final Map<E, Node<E>> nodeMap = Maps.newHashMap();
     private final SetMultimap<Node<E>, Node<E>> directRelationships = HashMultimap.create();
     private final Navigator<E> navigator = new DirectNavigator();
@@ -128,7 +128,7 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
     private class DirectNavigator implements Navigator<E> {
         private final Function<Node<E>, E> nodeToValue = new Function<Node<E>, E>() {
             public E apply(Node<E> node) {
-                return node.pre.get();
+                return magicList.get(node.pre);
             }
         };
         

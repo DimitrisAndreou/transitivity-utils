@@ -26,7 +26,7 @@ public class MergingIntervalSetTest {
 
     @Before
     public void init() {
-        list = BenderList.create();
+        list = OrderList.create();
         nodes = new ArrayList<Node<Integer>>();
         for (int i = 0; i < 16; i++) {
             nodes.add(list.addAfter(list.base().previous(), i));
