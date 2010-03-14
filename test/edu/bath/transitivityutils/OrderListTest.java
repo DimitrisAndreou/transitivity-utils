@@ -134,24 +134,24 @@ public class OrderListTest {
 
     @Test
     public void testBaseIsValid() {
-        OrderList list = OrderList.create();
+        OrderList<Void> list = OrderList.create();
         assertTrue(list.base().isValid());
     }
 
     @Test(expected=IllegalStateException.class)
     public void testPrecedesDeleted1() {
-        OrderList list = OrderList.create();
-        Node n1 = list.addAfter(list.base(), null);
-        Node n2 = list.addAfter(list.base(), null);
+        OrderList<Void> list = OrderList.create();
+        Node<Void> n1 = list.addAfter(list.base(), null);
+        Node<Void> n2 = list.addAfter(list.base(), null);
         list.delete(n1);
         n1.precedes(n2);
     }
 
     @Test(expected=IllegalStateException.class)
     public void testPrecedesDeleted2() {
-        OrderList list = OrderList.create();
-        Node n1 = list.addAfter(list.base(), null);
-        Node n2 = list.addAfter(list.base(), null);
+        OrderList<Void> list = OrderList.create();
+        Node<Void> n1 = list.addAfter(list.base(), null);
+        Node<Void> n2 = list.addAfter(list.base(), null);
         list.delete(n2);
         n1.precedes(n2);
     }
