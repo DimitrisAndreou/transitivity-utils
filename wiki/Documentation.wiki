@@ -25,7 +25,7 @@ This provides access to the relationships that were explicitly added to the {{{T
 
 This abstraction can be used to encode any aforementioned transitive relation. For example, if we iterate over a set of java types, and {{{relate}}} each one with each (immediate) supertype, we immediately have an efficient implementation of the {{{instanceof}}} operator in Java: {{{subtype.areRelated(subType, superType)}}}. 
 
-=== `TransitiveRelation` ===
+=== TransitiveRelation ===
 
 To create a {{{TransitiveRelation}}}, say on strings, use this:
 {{{
@@ -64,7 +64,7 @@ Given a {{{Navigator}}} instance, we can also compute transitive closures:
   Set<String> closureOfC = Navigators.closure(direct, "A"); // {"C"}
 }}}
 
-=== `TransitiveBiRelation` ===
+=== TransitiveBiRelation ===
 
 The {{{Navigator}}} instance provided by the {{{direct()}}} method of {{{TransitiveRelation}}} allows one to ask "with which elements is A related _to_", i.e. a query of "A=>?". But this cannot answer the inverse query, "which elements are related _to_ A", i.e. the query of "?=>A". That's where a {{{TransitiveBiRelation}}} is useful - it keeps track of both directions. {{{TransitiveBiRelation}}} is itself a normal {{{TransitiveBiRelation}}}, but also includes the inverse method:
 {{{
