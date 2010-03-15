@@ -82,7 +82,7 @@ Now, whereas {{{birelation.direct()}}} yields a navigator of the straight direct
 
 == Performance Considerations ==
 
-While the implemented {{{TransitiveRelation}}} does support incremental updates (adding relationships), if you already have a whole bunch of relationships to insert, not all orders of insertion are created equal, both in terms of required memory and performance. The basic concept is that "first a spanning tree of relationships should be added, then all the relationships remaining", because such a tree only requires O(1) space per element, and may capture, in such a compact way, a large part of the transitive relation. But to complicate things even more, not all spanning trees are created equal.
+While the implemented {{{TransitiveRelation}}} does support incremental updates (adding relationships), if you already have a whole bunch of relationships to insert, not all orders of insertion are created equal, both in terms of required memory and query performance. The basic concept is that "first a spanning tree of relationships should be added, then all the relationships remaining", because such a tree only requires O(1) space per element, and may capture, in such a compact way, a large part of the transitive relation. But to complicate things even more, not all spanning trees are created equal.
 
 Two heuristics are offered out of the box. One works for any relation, the other only in acyclic ones (but produces very compact representations).
 
