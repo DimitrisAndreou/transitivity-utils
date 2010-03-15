@@ -112,7 +112,7 @@ An easy way to create a {{{Navigator<E>}}} is through a [http://google-collectio
   Navigator<String> nav = Navigators.forMultimap();
 }}}
 
-Then, we just merge this navigator to the TransitiveRelation, and all its relationships are encoded to the latter.
+Then, we just merge this navigator to the {{{TransitiveRelation}}}, and all its relationships are encoded to the latter.
 
 == Javadocs ==
 
