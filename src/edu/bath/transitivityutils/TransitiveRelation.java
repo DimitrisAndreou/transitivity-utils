@@ -13,5 +13,11 @@ package edu.bath.transitivityutils;
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
 public interface TransitiveRelation<E> extends Relation<E> {
+    /**
+     * Returns the navigator that represents the <em>explicit</em> part of this transitive relation.
+     * That is, the relationships that were created directly through {@link #relate(Object, Object)},
+     * and not merely induced by transitivity.
+     *
+     */
     Navigator<E> direct();
 }
