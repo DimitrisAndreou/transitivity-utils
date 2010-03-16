@@ -123,10 +123,9 @@ final class MergingIntervalSet {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(32);
         sb.append("[");
-        Joiner.on(", ").appendTo(sb, Arrays.asList(array).subList(0, size));
-        sb.append("]");
+        Joiner.on(", ").appendTo(sb, Arrays.asList(array).subList(0, size)).append("]");
         return sb.toString();
     }
 }
