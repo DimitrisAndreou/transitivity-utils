@@ -1,6 +1,4 @@
-#summary One-sentence summary of this page.
 #labels Phase-Design
-
 = Why is this fast? =
 
 This abstraction can be used to encode any aforementioned transitive relation. For example, if we iterate over a set of java types, and {{{relate}}} each one with each (immediate) supertype, we immediately have an implementation of the {{{instanceof}}} operator in Java: {{{subtype.areRelated(subType, superType)}}}. The trick of course is doing this _efficiently_. One can readily imagine two naive ways to implement such a query:
