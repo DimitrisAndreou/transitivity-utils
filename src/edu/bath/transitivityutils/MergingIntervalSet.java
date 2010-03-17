@@ -104,9 +104,10 @@ final class MergingIntervalSet {
                 (index & 1) == 0; //node does not exist, but is inside an interval, not outside
     }
 
-    boolean contains(MergingIntervalSet other) {
+    boolean equalRepresentation(MergingIntervalSet other) {
+        if (size != other.size) return false;
         for (int i = 0; i < other.size; i += 2) {
-            if (!contains(other.array[i])) return false;
+            if (array[i] != other.array[i]) return false;
         }
         return true;
     }
