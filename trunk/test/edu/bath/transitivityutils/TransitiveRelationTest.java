@@ -304,12 +304,12 @@ public class TransitiveRelationTest {
     public void testRandomized() {
         r = Relations.newTransitiveRelation();
         SetMultimap<Integer, Integer> edges = HashMultimap.create();
-        int total = 100;
+        int total = 200;
         Random random = new Random(0);
 
         for (int subject = 0; subject < total; subject++) {
             for (int object = 0; object < total; object++) {
-                if (random.nextDouble() < 0.2) {
+                if (random.nextDouble() < 0.01) {
                     r.relate(subject, object);
                     edges.put(subject, object);
                 }

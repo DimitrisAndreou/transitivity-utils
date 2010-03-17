@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,14 +73,16 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
     }
 
     private void propagate(Node<E> subject, Node<E> object) {
-        Iterator<Node<E>> toVisit = Iterators.singletonIterator(object);
-        while (toVisit.hasNext()) {
-            Node<E> next = toVisit.next();
-            if (next.intervalSet.contains(subject.intervalSet)) {
-                continue; //this gracefully handles cycles
+        LinkedList<Node<E>> toVisit = Lists.newLinkedList();
+        toVisit.add(object);
+        while (!toVisit.isEmpty()) {
+            Node<E> current = toVisit.removeFirst();
+            current.intervalSet.addIntervals(subject.intervalSet);
+            for (Node<E> next : directRelationships.get(current)) {
+                if (!next.intervalSet.equalRepresentation(current.intervalSet)) { //this gracefully handles cycles
+                    toVisit.add(next);
+                }
             }
-            next.intervalSet.addIntervals(subject.intervalSet);
-            toVisit = Iterators.concat(directRelationships.get(next).iterator(), toVisit);
         }
     }
 
