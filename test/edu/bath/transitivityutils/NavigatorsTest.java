@@ -92,4 +92,17 @@ public class NavigatorsTest {
         assertEquals(ImmutableSet.of("A"), ImmutableSet.copyOf(Navigators.closure(navigator, "A")));
         assertEquals(ImmutableSet.of("A"), ImmutableSet.copyOf(Navigators.closureOfMany(navigator, ImmutableList.of("A"))));
     }
+
+    @Test
+    public void testDifference() {
+         Navigator<String> nav1 = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "a", "a2", "b", "b"));
+         Navigator<String> nav2 = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "c", "c2", "b", "b"));
+
+         Navigator<String> diff = Navigators.difference(nav1, nav2);
+        assertEquals(ImmutableSet.of("a"), ImmutableSet.copyOf(diff.domain()));
+
+        assertEquals(ImmutableSet.of("a2"), ImmutableSet.copyOf(diff.related("a")));
+        assertTrue(diff.related("b").isEmpty());
+        assertTrue(diff.related("c").isEmpty());
+   }
 }

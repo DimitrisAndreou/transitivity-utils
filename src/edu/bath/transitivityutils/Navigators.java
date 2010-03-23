@@ -1,19 +1,16 @@
 package edu.bath.transitivityutils;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -148,5 +145,42 @@ public final class Navigators {
         }.execute(false); //false: not allowing cycles
         
         return topologicalOrder;
+    }
+
+  /**
+   * Returns a <b>view</b> of the difference of two {@code Navigator}s. If
+   * a relationship is contained in both {@code nav1} and {@code nav2}, or in {@code nav2}
+   * only, it is ignored by the returned navigator. Also, its
+   * domain contains only those elements of {@code nav1}'s domain
+   * which contain relationships not found in {@code nav2}.
+   */
+    public static <E> Navigator<E> difference(Navigator<E> nav1, Navigator<E> nav2) {
+        return new DifferenceNavigator<E>(Preconditions.checkNotNull(nav1), Preconditions.checkNotNull(nav2));
+    }
+
+    private static class DifferenceNavigator<E> implements Navigator<E> {
+        private final Navigator<E> positive;
+        private final Navigator<E> negative;
+        private final Predicate<E> onlyElementsWithRelations = new Predicate<E>() {
+            public boolean apply(E input) {
+                return !related(input).isEmpty();
+            }
+        };
+
+        DifferenceNavigator(Navigator<E> positive, Navigator<E> negative) {
+            this.positive = positive;
+            this.negative = negative;
+        }
+
+        public Set<E> domain() {
+            return Sets.filter(positive.domain(), onlyElementsWithRelations);
+        }
+
+        public Set<E> related(E e) {
+            //avoid calling negative.related(e) if it is not in its domain
+            return (negative.domain().contains(e)) ? 
+                Sets.difference(positive.related(e), negative.related(e)) :
+                positive.related(e);
+        }
     }
 }
