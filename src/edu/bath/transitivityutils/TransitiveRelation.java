@@ -20,4 +20,11 @@ public interface TransitiveRelation<E> extends Relation<E> {
      *
      */
     Navigator<E> direct();
+
+    /** Relates a subject with an object (optional operation). After successfully invoking this operation,
+     * {@code areRelated(subject, object)} must return {@code true}. Note that relating
+     * an object with an equal does nothing, since reflexivity is implicit. As a consequence,
+     * the {@linkplain #direct()} navigator does not obtain a new relationship after such a call, .
+     */
+    void relate(E subject, E object);
 }
