@@ -14,8 +14,8 @@ import java.util.Set;
  */
 public interface Navigator<E> {
     /**
-     * The set of objects that are related to the specified subject. The specified object must
-     * exist in the {@linkplain #domain()} of this navigator.
+     * The set of objects that are related to the specified subject. If the specified object does not
+     * exist in the {@linkplain #domain()} of this navigator, then an empty set must be returned.
      */
     Set<E> related(E object);
 
