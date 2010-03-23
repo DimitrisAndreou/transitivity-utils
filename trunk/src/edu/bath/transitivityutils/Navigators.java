@@ -41,7 +41,7 @@ public final class Navigators {
     /**
      * Creates a {@code Navigator} <em>view</em> of the supplied domain and function.
      * The specified function is used to implement the returned navigator's {@code related(element)}
-     * invocations.
+     * invocations. It must return an empty set if applied to an element not in the supplied domain.
      *
      * <p>The returned navigator will be serializable if the specified set and function are serializable.
      *
@@ -147,25 +147,28 @@ public final class Navigators {
         return topologicalOrder;
     }
 
-  /**
-   * Returns a <b>view</b> of the difference of two {@code Navigator}s. If
-   * a relationship is contained in both {@code nav1} and {@code nav2}, or in {@code nav2}
-   * only, it is ignored by the returned navigator. Also, its
-   * domain contains only those elements of {@code nav1}'s domain
-   * which contain relationships not found in {@code nav2}.
-   */
+    /**
+     * Returns a <b>view</b> of the difference of two {@code Navigator}s. If
+     * a relationship is contained in both {@code nav1} and {@code nav2}, or in {@code nav2}
+     * only, it is ignored by the returned navigator. Its
+     * domain contains only those elements of {@code nav1}'s domain
+     * which contain relationships not found in {@code nav2}.
+     */
     public static <E> Navigator<E> difference(Navigator<E> nav1, Navigator<E> nav2) {
         return new DifferenceNavigator<E>(Preconditions.checkNotNull(nav1), Preconditions.checkNotNull(nav2));
     }
 
-    private static class DifferenceNavigator<E> implements Navigator<E> {
-        private final Navigator<E> positive;
-        private final Navigator<E> negative;
-        private final Predicate<E> onlyElementsWithRelations = new Predicate<E>() {
+    private static abstract class NavigatorWithPredicate<E> implements Navigator<E> {
+        protected final Predicate<E> onlyElementsWithRelations = new Predicate<E>() {
             public boolean apply(E input) {
                 return !related(input).isEmpty();
             }
         };
+    }
+
+    private static class DifferenceNavigator<E> extends NavigatorWithPredicate<E> {
+        private final Navigator<E> positive;
+        private final Navigator<E> negative;
 
         DifferenceNavigator(Navigator<E> positive, Navigator<E> negative) {
             this.positive = positive;
@@ -177,10 +180,64 @@ public final class Navigators {
         }
 
         public Set<E> related(E e) {
-            //avoid calling negative.related(e) if it is not in its domain
-            return (negative.domain().contains(e)) ? 
-                Sets.difference(positive.related(e), negative.related(e)) :
-                positive.related(e);
+            return Sets.difference(positive.related(e), negative.related(e));
+        }
+    }
+
+    /**
+     * Returns a <b>view</b> of the union of two {@code Navigator}s. If
+     * a relationship is contained in either {@code nav1} or {@code nav2},
+     * it is included in the returned navigator. Its
+     * domain is the union of {@code nav1}'s and {@code nav2}'s domains.
+     */
+    public static <E> Navigator<E> union(Navigator<E> nav1, Navigator<E> nav2) {
+        return new UnionNavigator<E>(Preconditions.checkNotNull(nav1), Preconditions.checkNotNull(nav2));
+    }
+
+    private static class UnionNavigator<E> implements Navigator<E> {
+        private final Navigator<E> nav1;
+        private final Navigator<E> nav2;
+
+        UnionNavigator(Navigator<E> nav1, Navigator<E> nav2) {
+            this.nav1 = nav1;
+            this.nav2 = nav2;
+        }
+
+        public Set<E> domain() {
+            return Sets.union(nav1.domain(), nav2.domain());
+        }
+
+        public Set<E> related(E e) {
+            return Sets.union(nav1.related(e), nav2.related(e));
+        }
+    }
+
+    /**
+     * Returns a <b>view</b> of the intersection of two {@code Navigator}s. If
+     * a relationship is contained in both {@code nav1} and {@code nav2},
+     * it is included in the returned navigator. Its domain contains only the elements
+     * in the intersection of {@code nav1}'s and {@code nav2}'s domains that
+     * have relationships in both navigators.
+     */
+    public static <E> Navigator<E> intersection(Navigator<E> nav1, Navigator<E> nav2) {
+        return new IntersectionNavigator<E>(Preconditions.checkNotNull(nav1), Preconditions.checkNotNull(nav2));
+    }
+
+    private static class IntersectionNavigator<E> extends NavigatorWithPredicate<E> {
+        private final Navigator<E> nav1;
+        private final Navigator<E> nav2;
+
+        IntersectionNavigator(Navigator<E> nav1, Navigator<E> nav2) {
+            this.nav1 = nav1;
+            this.nav2 = nav2;
+        }
+
+        public Set<E> domain() {
+            return Sets.filter(Sets.intersection(nav1.domain(), nav2.domain()), onlyElementsWithRelations);
+        }
+
+        public Set<E> related(E e) {
+            return Sets.intersection(nav1.related(e), nav2.related(e));
         }
     }
 }

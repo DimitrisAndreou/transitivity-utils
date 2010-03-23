@@ -105,4 +105,30 @@ public class NavigatorsTest {
         assertTrue(diff.related("b").isEmpty());
         assertTrue(diff.related("c").isEmpty());
    }
+
+    @Test
+    public void testUnion() {
+         Navigator<String> nav1 = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "a", "a2", "b", "b"));
+         Navigator<String> nav2 = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "c", "c2", "b", "b"));
+
+         Navigator<String> union = Navigators.union(nav1, nav2);
+        assertEquals(ImmutableSet.of("a", "b", "c"), ImmutableSet.copyOf(union.domain()));
+
+        assertEquals(ImmutableSet.of("a1", "a2"), ImmutableSet.copyOf(union.related("a")));
+        assertEquals(ImmutableSet.of("b"), ImmutableSet.copyOf(union.related("b")));
+        assertEquals(ImmutableSet.of("c2"), ImmutableSet.copyOf(union.related("c")));
+    }
+
+    @Test
+    public void testIntersection() {
+         Navigator<String> nav1 = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "a", "a2", "b", "b"));
+         Navigator<String> nav2 = Navigators.forMultimap(ImmutableSetMultimap.of("a", "a1", "c", "c2", "b", "b"));
+
+         Navigator<String> intersection = Navigators.intersection(nav1, nav2);
+        assertEquals(ImmutableSet.of("a", "b"), ImmutableSet.copyOf(intersection.domain()));
+
+        assertEquals(ImmutableSet.of("a1"), ImmutableSet.copyOf(intersection.related("a")));
+        assertEquals(ImmutableSet.of("b"), ImmutableSet.copyOf(intersection.related("b")));
+        assertTrue(intersection.related("c").isEmpty());
+   }
 }
