@@ -92,6 +92,11 @@ public final class Navigators {
         public Set<E> domain() {
             return multimap.keySet();
         }
+
+        @Override
+        public String toString() {
+            return multimap.toString();
+        }
     }
 
     /**
