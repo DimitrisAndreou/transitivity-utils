@@ -66,8 +66,15 @@ public final class Relations {
         }
     }
 
+    /**
+     * Creates an unmodifiable view of a transitive bidirectional relation. In particular, {@link TransitiveBiRelation#relate(Object, Object)}
+     * on the view (and its inverse) throws {@code UnsupportedOperationException}. The view is also {@link Serializable}.
+     *
+     * @param relation the transitive bidirectional relation
+     * @return an unmodifiable view of the transitive bidirectional relation
+     */
     public static <E> TransitiveBiRelation<E> unmodifiableTransitiveBiRelation(TransitiveBiRelation<E> relation) {
-        throw new UnsupportedOperationException();
+        return new UnmodifiableTransitiveBiRelation<E>(Preconditions.checkNotNull(relation));
     }
 
     private static class UnmodifiableTransitiveBiRelation<E> extends ForwardingTransitiveBiRelation<E> implements Serializable {
