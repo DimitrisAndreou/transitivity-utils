@@ -187,4 +187,25 @@ public class RelationsTest {
         timeWithoutMerge += System.nanoTime();
         assertTrue(timeWithMerge < timeWithoutMerge);
     }
+
+    @Test(expected=UnsupportedOperationException.class)
+    public void testUnmodifiableRelation() {
+        TransitiveRelation<String> r = Relations.newTransitiveRelation();
+        r = Relations.unmodifiableTransitiveRelation(r);
+        r.relate("1", "2");
+    }
+
+    @Test(expected=UnsupportedOperationException.class)
+    public void testUnmodifiableBiRelation() {
+        TransitiveBiRelation<String> r = Relations.newTransitiveBiRelation();
+        r = Relations.unmodifiableTransitiveBiRelation(r);
+        r.relate("1", "2");
+    }
+
+    @Test(expected=UnsupportedOperationException.class)
+    public void testUnmodifiableBiRelation_Inverse() {
+        TransitiveBiRelation<String> r = Relations.newTransitiveBiRelation();
+        r = Relations.unmodifiableTransitiveBiRelation(r).inverse();
+        r.relate("1", "2");
+    }
 }

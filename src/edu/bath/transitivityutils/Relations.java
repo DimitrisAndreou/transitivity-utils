@@ -2,6 +2,7 @@ package edu.bath.transitivityutils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSetMultimap;
+import java.io.Serializable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,64 @@ public final class Relations {
      */
     public static <E> TransitiveBiRelation<E> newTransitiveBiRelation() {
         return new DefaultTransitiveBiRelation<E>();
+    }
+
+    /**
+     * Creates an unmodifiable view of a transitive relation. In particular, {@link TransitiveRelation#relate(Object, Object)}
+     * on the view throws {@code UnsupportedOperationException}. The view is also {@link Serializable}.
+     *
+     * @param relation the transitive relation
+     * @return an unmodifiable view of the transitive relation
+     */
+    public static <E> TransitiveRelation<E> unmodifiableTransitiveRelation(TransitiveRelation<E> relation) {
+        return new UnmodifiableTransitiveRelation<E>(Preconditions.checkNotNull(relation));
+    }
+
+    private static class UnmodifiableTransitiveRelation<E> extends ForwardingTransitiveRelation<E> implements Serializable {
+        private final TransitiveRelation<E> delegate;
+
+        private static final long serialVersionUID = 2662440095083940207L;
+
+        UnmodifiableTransitiveRelation(TransitiveRelation<E> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override protected TransitiveRelation<E> delegate() {
+            return delegate;
+        }
+
+        @Override
+        public void relate(E subject, E object) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static <E> TransitiveBiRelation<E> unmodifiableTransitiveBiRelation(TransitiveBiRelation<E> relation) {
+        throw new UnsupportedOperationException();
+    }
+
+    private static class UnmodifiableTransitiveBiRelation<E> extends ForwardingTransitiveBiRelation<E> implements Serializable {
+        private final TransitiveBiRelation<E> delegate;
+
+        private static final long serialVersionUID = -2563205678446433458L;
+        
+        public UnmodifiableTransitiveBiRelation(TransitiveBiRelation<E> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override protected TransitiveBiRelation<E> delegate() {
+            return delegate;
+        }
+
+        @Override
+        public TransitiveBiRelation<E> inverse() {
+            return Relations.unmodifiableTransitiveBiRelation(delegate);
+        }
+
+        @Override
+        public void relate(E subject, E object) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     /**
