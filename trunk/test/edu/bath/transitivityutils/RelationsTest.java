@@ -188,24 +188,42 @@ public class RelationsTest {
         assertTrue(timeWithMerge < timeWithoutMerge);
     }
 
-    @Test(expected=UnsupportedOperationException.class)
+    @Test
     public void testUnmodifiableRelation() {
         TransitiveRelation<String> r = Relations.newTransitiveRelation();
-        r = Relations.unmodifiableTransitiveRelation(r);
         r.relate("1", "2");
+        r = Relations.unmodifiableTransitiveRelation(r);
+        assertTrue(r.areRelated("1", "2"));
+        assertFalse(r.areRelated("2", "3"));
+        try {
+            r.relate("2", "3");
+            fail();
+        } catch (UnsupportedOperationException ok) { }
     }
 
-    @Test(expected=UnsupportedOperationException.class)
+    @Test
     public void testUnmodifiableBiRelation() {
         TransitiveBiRelation<String> r = Relations.newTransitiveBiRelation();
-        r = Relations.unmodifiableTransitiveBiRelation(r);
         r.relate("1", "2");
+        r = Relations.unmodifiableTransitiveBiRelation(r);
+        assertTrue(r.areRelated("1", "2"));
+        assertFalse(r.areRelated("2", "3"));
+        try {
+            r.relate("2", "3");
+            fail();
+        } catch (UnsupportedOperationException ok) { }
     }
 
-    @Test(expected=UnsupportedOperationException.class)
+    @Test
     public void testUnmodifiableBiRelation_Inverse() {
         TransitiveBiRelation<String> r = Relations.newTransitiveBiRelation();
-        r = Relations.unmodifiableTransitiveBiRelation(r).inverse();
         r.relate("1", "2");
+        r = Relations.unmodifiableTransitiveBiRelation(r).inverse();
+        assertTrue(r.areRelated("1", "2"));
+        assertFalse(r.areRelated("2", "3"));
+        try {
+            r.relate("2", "3");
+            fail();
+        } catch (UnsupportedOperationException ok) { }
     }
 }
