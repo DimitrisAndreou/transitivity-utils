@@ -1,12 +1,9 @@
 package edu.bath.transitivityutils;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.SetMultimap;
-import java.util.Random;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import static edu.bath.transitivityutils.RelationAssertions.*;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -149,43 +146,6 @@ public class RelationsTest {
                 6, 7,
                 6, 8,
                 7, 8);
-    }
-
-    @Test
-    public void testMergeIsFaster() {
-        final int total = 250;
-        long timeWithMerge = -System.nanoTime();
-        {
-            TransitiveRelation<Integer> r1 = Relations.newTransitiveRelation();
-            SetMultimap<Integer, Integer> edges = HashMultimap.create();
-            Random random = new Random(0);
-
-            for (int subject = 0; subject < total; subject++) {
-                for (int object = 0; object < total; object++) {
-                    if (random.nextDouble() < 0.01) {
-                        edges.put(subject, object);
-                    }
-                }
-            }
-            Relations.merge(r1, Navigators.forMultimap(edges));
-        }
-        timeWithMerge += System.nanoTime();
-
-        long timeWithoutMerge = -System.nanoTime();
-        {
-            TransitiveRelation<Integer> r2 = Relations.newTransitiveRelation();
-            Random random = new Random(0);
-
-            for (int subject = 0; subject < total; subject++) {
-                for (int object = 0; object < total; object++) {
-                    if (random.nextDouble() < 0.01) {
-                        r2.relate(subject, object);
-                    }
-                }
-            }
-        }
-        timeWithoutMerge += System.nanoTime();
-        assertTrue(timeWithMerge < timeWithoutMerge);
     }
 
     @Test

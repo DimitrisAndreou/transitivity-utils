@@ -38,38 +38,36 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         if (Objects.equal(subjectValue, objectValue)) {
             return;
         }
-        Node<E> subject = nodeMap.get(subjectValue);
-        Node<E> object = createObjectNode(objectValue, subject);
 
-        if (subject != null) {
-            propagate(subject, object);
+        Node<E> subject;
+        Node<E> object;
+        if (isNew(subjectValue)) {
+            if (isNew(objectValue)) {
+                subject = Node.create(this, subjectValue);
+                object = subject.createEnclosing(this, objectValue);
+            } else {
+                object = nodeMap.get(objectValue);
+                subject = object.createEnclosed(this, subjectValue);
+            }
         } else {
-            OrderList.Node<E> anchor = object.post.previous();
-            subject = new Node<E>(
-                    anchor = magicList.addAfter(anchor, subjectValue),
-                    magicList.addAfter(anchor, null)); //we don't need the value in post nodes, we get it from pre nodes
-            nodeMap.put(subjectValue, subject);
+            subject = nodeMap.get(subjectValue);
+            if (subject.isEnclosable() && isNew(objectValue)) {
+                object = subject.createEnclosing(this, objectValue);
+            } else {
+                object = getOrCreateNode(objectValue);
+                propagate(subject, object);
+            }
         }
         directRelationships.put(subject, object);
     }
 
-    private Node<E> createObjectNode(E value, Node<E> subject) {
+    private boolean isNew(E subject) {
+        return !nodeMap.containsKey(subject);
+    }
+
+    private Node<E> getOrCreateNode(E value) {
         Node<E> node = nodeMap.get(value);
-        if (node == null) {
-            if (subject != null && !directRelationships.containsKey(subject)) {
-                //subject.pre, post is not embedded in another node, so it is possible
-                //to surround it by the new node
-                node = new Node<E>(
-                        magicList.addAfter(subject.pre.previous(), value),
-                        magicList.addAfter(subject.post, null)); //we don't need the value in post nodes, we get it from pre nodes
-            } else {
-                node = new Node<E>(
-                    magicList.addAfter(magicList.base().previous(), value),
-                    magicList.addAfter(magicList.base().previous(), null)); //we don't need the value in post nodes, we get it from pre nodes
-            }
-            nodeMap.put(value, node);
-        }
-        return node;
+        return node == null ? Node.create(this, value) : node;
     }
 
     private void propagate(Node<E> subject, Node<E> object) {
@@ -112,8 +110,18 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
     }
 
     private static class Node<E> {
+        /*
+         * We store the value of this node in pre,
+         * and whether this node is enclosable in post
+         */
         final OrderList.Node<E> pre;
         final OrderList.Node<E> post;
+
+        /**
+         * Stored as a value in post to represent that another node may enclose this node.
+         * This can happen at most once per node.
+         */
+        static final Object ENCLOSABLE_MARKER = "<enclosable>";
 
         final MergingIntervalSet intervalSet = new MergingIntervalSet();
 
@@ -127,12 +135,62 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         public String toString() {
             return intervalSet.toString();
         }
+
+        E getValue() {
+            return pre.getValue();
+        }
+
+        boolean isEnclosable() {
+            boolean isEnclosable = post.getValue() == ENCLOSABLE_MARKER;
+            if (isEnclosable) {
+                isEnclosable = intervalSet.size() == 2; //otherwise, this node has been tainted
+                //with foreign intervals, and it can never be enclosable (otherwise the enclosing interval
+                //would also subsume the gaps between the intervals, which could lead to errors)
+                if  (!isEnclosable) markNotEnclosable(); //also speeds up subsequent invocations
+            }
+            return isEnclosable;
+        }
+
+        void markNotEnclosable() {
+            post.setValue(null);
+        }
+
+        @SuppressWarnings("unchecked") //ENCLOSABLE_MARKER is not an E,
+        //but we never get E from post.getValue(), rather we only use it to test
+        //whether it holds null or ENCLOSABLE_MARKER. Also, post is never exposed.
+        Node<E> createEnclosing(DefaultTransitiveRelation<E> owner, E value) {
+            OrderList.Node<E> newPre = owner.magicList.addAfter(pre.previous(), value);
+            OrderList.Node<E> newPost = owner.magicList.addAfter(post, (E)ENCLOSABLE_MARKER);
+            markNotEnclosable();
+            return createAndRegister(owner, newPre, newPost, value);
+        }
+
+        //Note that in this case the created node cannot be enclosed; it is created already enclosed
+        Node<E> createEnclosed(DefaultTransitiveRelation<E> owner, E value) {
+            OrderList.Node<E> newPre = owner.magicList.addAfter(post.previous(), value);
+            OrderList.Node<E> newPost = owner.magicList.addAfter(newPre, null); 
+            return createAndRegister(owner, newPre, newPost, value);
+        }
+
+        @SuppressWarnings("unchecked") //Same as above
+        static <E> Node<E> create(DefaultTransitiveRelation<E> owner, E value) {
+            OrderList.Node<E> newPre = owner.magicList.addAfter(owner.magicList.base().previous(), value);
+            OrderList.Node<E> newPost = owner.magicList.addAfter(newPre, (E)ENCLOSABLE_MARKER);
+            return createAndRegister(owner, newPre, newPost, value);
+        }
+
+        static <E> Node<E> createAndRegister(DefaultTransitiveRelation<E> owner,
+                OrderList.Node<E> pre, OrderList.Node<E> post, E value) {
+            Node<E> node = new Node<E>(pre, post);
+            owner.nodeMap.put(value, node);
+            return node;
+        }
     }
 
     private class DirectNavigator implements Navigator<E> {
         private final Function<Node<E>, E> nodeToValue = new Function<Node<E>, E>() {
             public E apply(Node<E> node) {
-                return magicList.get(node.pre);
+                return node.getValue();
             }
         };
         
