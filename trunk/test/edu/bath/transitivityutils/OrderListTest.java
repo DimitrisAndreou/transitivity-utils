@@ -4,7 +4,6 @@ import edu.bath.transitivityutils.OrderList.Node;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Random;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -50,6 +49,13 @@ public class OrderListTest {
     @Test
     public void testRandomized() {
         genericTest(randomChooser);
+    }
+
+    @Test
+    public void testToStringWithNulls() {
+        OrderList<String> orderList = OrderList.create();
+        orderList.addAfter(orderList.base(), null);
+        assertEquals("[null]", orderList.toString());
     }
 
     private <T> OrderList<?> genericTest(Chooser chooser) {
@@ -156,16 +162,16 @@ public class OrderListTest {
         n1.precedes(n2);
     }
 
-    @Test(expected=NoSuchElementException.class)
+    @Test
     public void testBaseGet() {
-        OrderList<String> list = OrderList.create();
-        list.get(list.base());
+        OrderList<Object> orderList = OrderList.<Object>create();
+        assertNull(orderList.base().getValue());
     }
 
-    @Test(expected=NoSuchElementException.class)
+    @Test(expected=UnsupportedOperationException.class)
     public void testBaseSet() {
         OrderList<String> list = OrderList.create();
-        list.set(list.base(), null);
+        list.base().setValue(null);
     }
 
     @Test
@@ -221,7 +227,7 @@ public class OrderListTest {
         Node<T> n2 = list2.base().next();
 
         do {
-            assertEquals(list1.get(n1), list2.get(n2));
+            assertEquals(n1.getValue(), n2.getValue());
             n1 = n1.next();
             n2 = n2.next();
         } while (n1 != list1.base());

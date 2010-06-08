@@ -295,9 +295,10 @@ public class TransitiveRelationTest {
         r.relate(0, 2);
         r.relate(2, 3);
 
-        assertTrue(r.areRelated(0, 2));
-        assertTrue(r.areRelated(2, 3));
-        assertTrue(r.areRelated(0, 3));
+        assertRelations(r,
+                0, 2,
+                2, 3,
+                0, 3);
     }
 
     @Test

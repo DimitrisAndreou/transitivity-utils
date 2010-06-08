@@ -12,8 +12,11 @@ import java.util.NoSuchElementException;
  *
  * <p>This structure consists of a list of {@linkplain OrderList.Node}s, each one representing a user element, plus
  * a {@linkplain #base() base} sentinel node, which is always the first node of the list, and which does not correspond 
- * to a user element (trying to {@linkplain #get(Node) access} or {@linkplain #set(Node, Object) set} its element
- * results in a {@code NoSuchElementException}). {@code list.base().previous()} represents the last node
+ * to a user element (trying to {@linkplain Node#getValue()} on it always returns {@code null}, and
+ * {@linkplain Node#setValue(Object) throws UnsupportedOperationException}). The base node
+ * is also ignored in {@linkplain #size()} and {@linkplain #iterator()}.
+ *
+ * {@code list.base().previous()} represents the last node
  * of the list, while for any node {@code n}, {@code n == n.next().previous() == n.previous().next()} always holds.
  *
  * <p>Behavior of an {@code OrderList} instance becomes undefined if methods that accept a {@link Node} argument
@@ -36,7 +39,15 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
     }
 
     private void init() {
-        base = new Node<E>(null, Long.MIN_VALUE);
+        base = new Node<E>(null, Long.MIN_VALUE) {
+            @Override public E getValue() {
+                return null;
+            }
+
+            @Override public void setValue(E value) {
+                throw new UnsupportedOperationException("Cannot set a value to the base node");
+            }
+        };
     }
 
     /**
@@ -142,26 +153,6 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
         return Math.pow(Math.pow(2, 62) / size, 1.0 / 62);
     }
 
-    /**
-     * Returns the value associated with the specified node.
-     */
-    public E get(Node<E> node) {
-        checkNotBase(node);
-        return node.value;
-    }
-
-    /**
-     * Associates the specified node with a new value.
-     */
-    public void set(Node<E> node, E newValue) {
-        checkNotBase(node);
-        node.value = newValue;
-    }
-
-    private void checkNotBase(Node<E> node) {
-        if (node == base) throw new NoSuchElementException("Base node does not have an element");
-    }
-
     private void relabelMinimumSparseEnclosingRange(Node<E> n) {
         final double T = computeOptimalT();
 
@@ -230,7 +221,7 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[");
-        Joiner.on(", ").appendTo(sb, this);
+        Joiner.on(", ").useForNull("null").appendTo(sb, this);
         sb.append("]");
         return sb.toString();
     }
@@ -321,6 +312,23 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
          */
         public final OrderList.Node<E> previous() {
             return prev;
+        }
+
+        /**
+         * Returns the value associated with this node. The value of
+         * the {@link OrderList#base() base} node is always {@code null}.
+         */
+        public E getValue() {
+            return value;
+        }
+
+        /**
+         * Associates this node with the specified value.
+         *
+         * @param newValue the value with which to associate this node
+         */
+        public void setValue(E newValue) {
+            this.value = newValue;
         }
     }
 

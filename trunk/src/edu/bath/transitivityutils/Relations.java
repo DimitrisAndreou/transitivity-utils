@@ -1,7 +1,6 @@
 package edu.bath.transitivityutils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSetMultimap;
 import java.io.Serializable;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -134,7 +133,7 @@ public final class Relations {
                 relation.relate(subject, object);
             }
         }.execute(true); //true: allow cycles
-        
+
         for (E subject : navigator.domain()) {
             for (E object : navigator.related(subject)) {
                 relation.relate(subject, object);
@@ -169,7 +168,7 @@ public final class Relations {
     public static <E> void mergeAcyclic(TransitiveRelation<? super E> relation, Navigator<E> acyclicNavigator) {
         Preconditions.checkNotNull(relation);
         //prefer edges that create longer paths
-        //this code first add the relationships forming the tree with longest paths, to induce
+        //this code first adds the relationships forming the tree with longest paths, to induce
         //good interval compression, then the rest relationships (for simplicitly, all are added, the redundancy is not important)
         List<E> postOrder = Navigators.topologicalOrder(acyclicNavigator);
         Map<E, Integer> pathLengths = new IdentityHashMap<E, Integer>(acyclicNavigator.domain().size());
