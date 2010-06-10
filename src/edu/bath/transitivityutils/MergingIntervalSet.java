@@ -104,10 +104,30 @@ final class MergingIntervalSet {
                 (index & 1) == 0; //node does not exist, but is inside an interval, not outside
     }
 
-    boolean equalRepresentation(MergingIntervalSet other) {
-        if (size != other.size) return false;
-        for (int i = 0; i < other.size; i += 2) {
-            if (array[i] != other.array[i]) return false;
+    /**
+     * Tests whether this interval set contains every interval of another interval set (of course, the
+     * nodes of both interval sets must belong to the same instance of OrderList).
+     */
+    boolean containsAll(MergingIntervalSet other) {
+        if (this.size == 0) return other.size == 0;
+        int thisIndex = 0;
+        Node<?> thisLeft = this.array[thisIndex];
+        Node<?> thisRight = this.array[thisIndex + 1];
+        for (int thatIndex = 0; thatIndex < other.size; thatIndex += 2) {
+            Node<?> otherLeft = other.array[thatIndex];
+            Node<?> otherRight = other.array[thatIndex + 1];
+            while (true) {
+                if ((thisLeft.precedes(otherLeft) || thisLeft == otherLeft) &&
+                    (otherRight.precedes(thisRight) || otherRight == thisRight)) {
+                    break;
+                }
+                thisIndex += 2;
+                if (thisIndex == this.size) {
+                    return false; //could not find an interval that contains otherLeft and otherRight
+                }
+                thisLeft = this.array[thisIndex];
+                thisRight = this.array[thisIndex + 1];
+            }
         }
         return true;
     }
