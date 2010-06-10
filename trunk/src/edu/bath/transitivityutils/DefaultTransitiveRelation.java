@@ -75,9 +75,9 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
         toVisit.add(object);
         while (!toVisit.isEmpty()) {
             Node<E> current = toVisit.removeFirst();
-            current.intervalSet.addIntervals(subject.intervalSet);
-            for (Node<E> next : directRelationships.get(current)) {
-                if (!next.intervalSet.equalRepresentation(current.intervalSet)) { //this gracefully handles cycles
+            if (!current.intervalSet.containsAll(subject.intervalSet)) { //this gracefully handles cycles
+                current.intervalSet.addIntervals(subject.intervalSet);
+                for (Node<E> next : directRelationships.get(current)) {
                     toVisit.add(next);
                 }
             }

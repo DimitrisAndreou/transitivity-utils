@@ -213,6 +213,47 @@ public class MergingIntervalSetTest {
         assertEquals(4, capacityOf(set));
     }
 
+    @Test
+    public void testContainsAll() {
+        MergingIntervalSet otherSet = new MergingIntervalSet();
+        set.addInterval(nodes.get(1), nodes.get(6));
+
+        otherSet.addInterval(nodes.get(4), nodes.get(5));
+        otherSet.addInterval(nodes.get(2), nodes.get(3));
+        assertTrue(set.containsAll(otherSet));
+        assertFalse(otherSet.containsAll(set));
+
+        otherSet.addInterval(nodes.get(7), nodes.get(8));
+        assertFalse(set.containsAll(otherSet));
+        assertFalse(otherSet.containsAll(set));
+
+        set.addInterval(nodes.get(6), nodes.get(8));
+        set.addInterval(nodes.get(9), nodes.get(10));
+        assertTrue(set.containsAll(otherSet));
+        assertFalse(otherSet.containsAll(set));
+
+        otherSet.addInterval(nodes.get(1), nodes.get(2));
+        assertTrue(set.containsAll(otherSet));
+        assertFalse(otherSet.containsAll(set));
+    }
+
+    @Test
+    public void testContainsAll2() {
+        MergingIntervalSet otherSet = new MergingIntervalSet();
+        set.addInterval(nodes.get(1), nodes.get(2));
+        otherSet.addInterval(nodes.get(3), nodes.get(4));
+
+        assertFalse(set.containsAll(otherSet));
+
+        set.addIntervals(otherSet);
+        assertTrue(set.containsAll(otherSet));
+        assertFalse(otherSet.containsAll(set));
+
+        otherSet.addIntervals(set);
+        assertTrue(set.containsAll(otherSet));
+        assertTrue(otherSet.containsAll(set));
+    }
+
     private int capacityOf(MergingIntervalSet mis) {
         try {
             return ((Node<?>[])arrayField.get(mis)).length;
