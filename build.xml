@@ -4,13 +4,13 @@
     <description>Builds, tests, and runs the project transitivity-utils.</description>
     <import file="nbproject/build-impl.xml"/>
 
-    <property file="build.properties"/>
+    <property file="build.properties"/> 
 
     <!-- Distribution -->
     <target name="dist" depends="clean,jar,javadoc">
         <echo message="version = ${version}"/>
         <tstamp/>
-        <property name="zip.file" value="${dist.dir}/transitivity-utils-${version}.zip"/>
+        <property name="zip.file" value="${dist.dir}/transitivity-utils.zip"/>
         <zip destfile="${zip.file}">
             <zipfileset dir="${src.dir}" prefix="${src.dir}"/>
             <zipfileset dir="${test.src.dir}" prefix="${test.src.dir}"/>
@@ -23,5 +23,6 @@
             <zipfileset dir="nbproject" prefix="nbproject"/>
             <zipfileset file="LICENCE" prefix=""/>
         </zip>
+        <copy file="${zip.file}" tofile="${dist.dir}/transitivity-utils-${version}.zip"/>
     </target>
 </project>
