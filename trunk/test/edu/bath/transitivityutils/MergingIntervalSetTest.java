@@ -264,14 +264,23 @@ public class MergingIntervalSetTest {
 
     private void assertContains(Node<Integer> pre, Node<Integer> post) {
         assertTrue(set.contains(pre));
+        assertTrue(set.contains_linearScan(pre));
+        assertTrue(set.contains_binarySearch(pre));
+
         assertTrue(set.contains(post));
+        assertTrue(set.contains_linearScan(post));
+        assertTrue(set.contains_binarySearch(post));
 
         Node<Integer> tmp = list.addAfter(pre.previous(), -1);
         assertFalse(set.contains(tmp));
+        assertFalse(set.contains_linearScan(tmp));
+        assertFalse(set.contains_binarySearch(tmp));
         list.delete(tmp);
 
         tmp = list.addAfter(post, -1);
         assertFalse(set.contains(tmp));
+        assertFalse(set.contains_linearScan(tmp));
+        assertFalse(set.contains_binarySearch(tmp));
         list.delete(tmp);
     }
 }

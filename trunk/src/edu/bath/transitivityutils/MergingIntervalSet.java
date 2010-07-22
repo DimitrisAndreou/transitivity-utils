@@ -1,5 +1,6 @@
 package edu.bath.transitivityutils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import edu.bath.transitivityutils.OrderList.Node;
@@ -95,10 +96,44 @@ final class MergingIntervalSet {
         }
     }
 
+
+    /**
+     * Size above which we switch to binary search.
+     */
+    private static final int BINARY_SEARCH_CUTOFF_POINT = 8; //slightly conservative. 10 would be probably OK too
+
     /**
      * Tests whether a node is contained in any interval (or defines an interval boundary) of this interval set.
      */
     boolean contains(Node<?> node) {
+        if (size <= BINARY_SEARCH_CUTOFF_POINT) {
+            return contains_linearScan(node);
+        } else {
+            return contains_binarySearch(node);
+        }
+    }
+
+    @VisibleForTesting
+    boolean contains_linearScan(Node<?> node) {
+        if (node == null) {
+            throw new IllegalArgumentException("null");
+        }
+        int i = 0;
+        while (i < size) {
+            Node<?> left = array[i++];
+            if (node.precedes(left)) {
+                return false;
+            }
+            Node<?> right = array[i++];
+            if (node.precedes(right) || node == right) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @VisibleForTesting
+    boolean contains_binarySearch(Node<?> node) {
         int index = Arrays.binarySearch(array, 0, size, node, NodeComparator.INSTANCE);
         return index > 0 || //node exists as-is in the set
                 (index & 1) == 0; //node does not exist, but is inside an interval, not outside
