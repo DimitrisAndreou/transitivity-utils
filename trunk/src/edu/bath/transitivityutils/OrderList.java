@@ -28,8 +28,12 @@ import java.util.NoSuchElementException;
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  * @see <a href="http://portal.acm.org/citation.cfm?id=740822">Two Simplified Algorithms for Maintaining Order in a List (Bender et al., 2002)</a>
  */
-public final class OrderList<E> implements Iterable<E>, Serializable {
-    private transient /*final*/ Node<E> base;
+public final class OrderList<E> implements Iterable<OrderList.Node<E>>, Serializable {
+    //Probably this should either implement List<OrderList.Node<E>>, or have a method that returns
+    //such a view. That should also have a method to flatten to a List<E>. The latter should
+    //support all optional methods.
+
+    private transient Node<E> base;
     private transient int size = 0;
     
     private static final long serialVersionUID = -6060298699521132512L;
@@ -213,10 +217,6 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
         assert n.tag + 1 != n.next.tag;
     }
 
-    public Iterator<E> iterator() {
-        return new IteratorImpl(base);
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -226,7 +226,11 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
         return sb.toString();
     }
 
-    private class IteratorImpl implements Iterator<E> {
+    public Iterator<Node<E>> iterator() {
+        return new IteratorImpl(base);
+    }
+
+    private class IteratorImpl implements Iterator<Node<E>> {
         private Node<E> node;
 
         IteratorImpl(Node<E> node) {
@@ -237,10 +241,10 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
             return node.next != base;
         }
 
-        public E next() {
+        public Node<E> next() {
             if (!hasNext()) throw new NoSuchElementException();
             try {
-                return node.next.value;
+                return node.next;
             } finally {
                 node = node.next;
             }
@@ -339,9 +343,9 @@ public final class OrderList<E> implements Iterable<E>, Serializable {
     private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
         s.writeInt(size);
         int total = 0;
-        for (E element : this) {
+        for (Node<E> node : this) {
             total++;
-            s.writeObject(element);
+            s.writeObject(node.value);
         }
     }
 
