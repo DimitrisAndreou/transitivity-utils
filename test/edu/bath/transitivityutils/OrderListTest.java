@@ -58,7 +58,7 @@ public class OrderListTest {
         assertEquals("[null]", orderList.toString());
     }
 
-    private <T> OrderList<?> genericTest(Chooser chooser) {
+    private OrderList<Integer> genericTest(Chooser chooser) {
         final int total = 10240;
         List<Node<Integer>> elements = new ArrayList<Node<Integer>>(total);
 
