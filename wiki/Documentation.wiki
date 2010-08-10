@@ -109,7 +109,7 @@ An easy way to create a {{{Navigator<E>}}} is through a [http://google-collectio
   mm.put("C", "E");
   //ImmutableMultimap can also be used
 
-  Navigator<String> nav = Navigators.forMultimap();
+  Navigator<String> nav = Navigators.forMultimap(mm);
 }}}
 
 Then, we just merge this navigator to the {{{TransitiveRelation}}}, and all its relationships are encoded to the latter.
