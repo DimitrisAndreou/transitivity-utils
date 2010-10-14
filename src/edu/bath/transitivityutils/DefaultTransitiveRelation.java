@@ -240,8 +240,8 @@ class DefaultTransitiveRelation<E> implements TransitiveRelation<E>, Serializabl
 
         @SuppressWarnings("unchecked")
         private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-            SetMultimap<Object, Object> mm = HashMultimap.create();
             int domainCount = s.readInt();
+            SetMultimap<Object, Object> mm = HashMultimap.create(domainCount, 2);
             for (int i = 0; i < domainCount; i++) {
                 Object subject = s.readObject();
                 Collection<Object> objects = mm.get(subject);
