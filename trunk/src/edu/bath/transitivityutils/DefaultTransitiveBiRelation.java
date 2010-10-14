@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author Andreou Dimitris, email: jim.andreou (at) gmail.com
  */
 class DefaultTransitiveBiRelation<E> implements TransitiveBiRelation<E>, Serializable {
-    private final SetMultimap<E, E> inverseEdges = HashMultimap.create();
+    private final SetMultimap<E, E> inverseEdges = HashMultimap.create(16, 2);
     private final TransitiveRelation<E> relation = Relations.newTransitiveRelation();
     private final Navigator<E> inverseRelation = Navigators.forMultimap(inverseEdges);
 
