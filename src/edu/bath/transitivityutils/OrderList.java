@@ -152,9 +152,13 @@ public final class OrderList<E> implements Iterable<OrderList.Node<E>>, Serializ
         return (x & y) + (x ^ y) / 2;
     }
 
+    private static final double _2_to_62 = Math.pow(2, 62);
+    /**
+     * Computes the maximum T that does not overflow the root (with the current size)
+     */
     private double computeOptimalT() {
         //note that division by zero is impossible, since with size == 1, no relabeling
-        return Math.pow(Math.pow(2, 62) / size, 1.0 / 62);
+        return Math.pow(_2_to_62 / size, 1.0 / 62);
     }
 
     private void relabelMinimumSparseEnclosingRange(Node<E> n) {
