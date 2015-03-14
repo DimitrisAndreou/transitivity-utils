@@ -1,0 +1,8 @@
+# Why is this fast? #
+
+This abstraction can be used to encode any transitive relation. For example, if we iterate over a set of java types, and `relate` each one with each (immediate) supertype, we immediately have an implementation of the `instanceof` operator in Java: `subtype.areRelated(subType, superType)`. The trick of course is doing this _efficiently_. One can readily imagine two naive ways to implement such a query:
+
+  * For each element, materialize the whole transitive closure of it (so `relation.areRelated(x, y)` is equivalent to checking whether `y` is included in the materialized transitive closure of `x`). This is very memory-hungry, for example trying to encode even a the linear relation of `A=>B=>C=>D=>E=>F=>...=>Z`, would require quadratic space.
+  * Use navigation - when someone asks `relation.areRelated(x, y)`, just start at `x` and explore the graph induces by all direct relationships. If the search finds `y`, then we answer true, otherwise the search is exhausted unsuccessfully and we answer false. While this scheme uses the minimum possible memory to represent the relation, it is potentially very costly to query.
+
+The point of this project is that we can do better than that. It's a long story, best explained in this blog post: [Graph reachability, transitive closures, and a nasty historical accident in the pre-google era](http://code-o-matic.blogspot.com/2010/07/graph-reachability-transitive-closures.html)
